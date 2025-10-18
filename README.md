@@ -1,3 +1,4 @@
+Type these into your terminal in the howdyhack-25 folder
 1) brew install uv OR curl -LsSf https://astral.sh/uv/install.sh | sh
 2) uv venv
 3) source .venv/bin/activate
