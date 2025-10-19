@@ -180,24 +180,49 @@ export default function Form() {
                 {
                 "title": "Learn Docker Fundamentals",
                 "priority": "critical",
-                "duration": "2-3 weeks",
+                "duration": "3 weeks",
                 "skills": ["Docker"],
                 "description": "Essential for all 3 jobs - containerization is a must-have",
-                "resources": ["Docker Official Tutorial", "Docker Course on Udemy", "Docker Practice Labs"]
+                "weeklyBreakdown": [
+                    {
+                    "week": 1,
+                    "topics": ["Docker basics & installation", "Containers vs VMs", "Basic Docker commands"],
+                    "goals": "Understand containerization and run your first container",
+                    "estimatedHours": "8-10 hours"
+                    },
+                    {
+                    "week": 2,
+                    "topics": ["Dockerfile creation", "Building custom images", "Docker networking"],
+                    "goals": "Build and manage your own Docker images",
+                    "estimatedHours": "8-10 hours"
+                    },
+                    {
+                    "week": 3,
+                    "topics": ["Docker Compose", "Multi-container apps", "Practice project"],
+                    "goals": "Deploy a full-stack application with Docker Compose",
+                    "estimatedHours": "10-12 hours"
+                    }
+                ],
+                "resources": ["Docker Official Tutorial", "FreeCodeCamp Docker Course", "Docker Practice Labs"]
                 }
             ]
             }
 
             CRITICAL REQUIREMENTS:
-            - MAXIMUM 7 MODULES - Be selective! Choose the most industry-relevant technologies
-            - TIME FRAME: ${timeFrame} - Ensure the total learning plan is achievable in this time. Adjust module durations accordingly.
+            - MAXIMUM 7 MODULES (technologies) - Be selective! Choose the most industry-relevant technologies
+            - TIME FRAME: ${timeFrame} - Ensure the total learning plan is achievable in this time
+            - Each module = ONE technology, but include a "weeklyBreakdown" array with week-by-week topics (Coursera-style)
+            - Each week in the breakdown should have:
+              * "week": number (1, 2, 3, etc. within that module)
+              * "topics": array of 3-5 specific topics for that week
+              * "goals": what the learner should achieve by end of week
+              * "estimatedHours": realistic time commitment (5-15 hours/week)
             - If jobs are TOO DIFFERENT (unrelated career paths), set "similarJobs": false and mention this in jobSummary
             - ONLY create modules for technologies in "missingSkills"
-            - Each module focuses on ONE specific technology
             - Include "priority" field in each module (critical/high/medium/low)
             - Start with CRITICAL priority modules first, then HIGH, then MEDIUM
-            - Provide 3+ FREE resources per module
-            - Set realistic "duration" for each module based on the ${timeFrame} constraint`;
+            - Provide 3+ FREE resources per module (not per week)
+            - Set realistic "duration" (in weeks) based on the ${timeFrame} constraint`;
 
             // Job URLs will be handled by the API - just mention them in the prompt
             prompt += `\n\nYou will receive scraped content from ${filledUrls.length} job posting(s). Analyze ALL of them to find common patterns and important technologies.`;

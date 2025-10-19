@@ -119,15 +119,18 @@ export default function RoadmapTimeline({ modules }: RoadmapTimelineProps)
             <h3 style={{ marginTop: '30px', marginBottom: '20px' }}>Learning Modules:</h3>
 
             {/* Loop through each module */}
-            {moduleArray.map((module: any, index: number) => {
-                // Priority badge colors
-                const priorityColors: any = {
-                    critical: { bg: '#FFEBEE', border: '#D32F2F', text: '#D32F2F', label: '🔥 CRITICAL' },
-                    high: { bg: '#FFF3E0', border: '#F57C00', text: '#F57C00', label: '⭐ HIGH' },
-                    medium: { bg: '#E3F2FD', border: '#1976D2', text: '#1976D2', label: '📌 MEDIUM' },
-                    low: { bg: '#F5F5F5', border: '#616161', text: '#616161', label: '💡 LOW' }
-                };
-                const priorityStyle = module.priority ? priorityColors[module.priority] : null;
+            {(() => {
+                let globalWeekCounter = 0; // Track continuous week numbers across all modules
+
+                return moduleArray.map((module: any, index: number) => {
+                    // Priority badge colors
+                    const priorityColors: any = {
+                        critical: { bg: '#FFEBEE', border: '#D32F2F', text: '#D32F2F', label: '🔥 CRITICAL' },
+                        high: { bg: '#FFF3E0', border: '#F57C00', text: '#F57C00', label: '⭐ HIGH' },
+                        medium: { bg: '#E3F2FD', border: '#1976D2', text: '#1976D2', label: '📌 MEDIUM' },
+                        low: { bg: '#F5F5F5', border: '#616161', text: '#616161', label: '💡 LOW' }
+                    };
+                    const priorityStyle = module.priority ? priorityColors[module.priority] : null;
 
                 return (
                     <div key={index} style={{
@@ -166,6 +169,41 @@ export default function RoadmapTimeline({ modules }: RoadmapTimelineProps)
                         ))}
                     </div>
 
+                    {/* Weekly Breakdown - Coursera style */}
+                    {module.weeklyBreakdown && module.weeklyBreakdown.length > 0 && (
+                        <div style={{ marginTop: '15px' }}>
+                            <p style={{ color: '#444', fontWeight: 'bold', marginBottom: '10px' }}>📅 Week-by-Week Plan:</p>
+                            {module.weeklyBreakdown.map((week: any, weekIndex: number) => {
+                                globalWeekCounter++; // Increment for each week across all modules
+                                return (
+                                    <div key={weekIndex} style={{
+                                        marginBottom: '12px',
+                                        padding: '12px',
+                                        backgroundColor: '#f9f9f9',
+                                        borderLeft: '4px solid #4CAF50',
+                                        borderRadius: '4px'
+                                    }}>
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                                            <strong style={{ color: '#2e7d32' }}>Week {globalWeekCounter}</strong>
+                                            <span style={{ fontSize: '12px', color: '#666' }}>{week.estimatedHours}</span>
+                                        </div>
+                                        <p style={{ color: '#555', fontSize: '14px', margin: '6px 0', fontStyle: 'italic' }}>
+                                            🎯 {week.goals}
+                                        </p>
+                                        <div style={{ marginTop: '8px' }}>
+                                            <strong style={{ color: '#444', fontSize: '13px' }}>Topics:</strong>
+                                            <ul style={{ margin: '4px 0', paddingLeft: '20px' }}>
+                                                {week.topics.map((topic: string, topicIndex: number) => (
+                                                    <li key={topicIndex} style={{ color: '#444', fontSize: '13px' }}>{topic}</li>
+                                                ))}
+                                            </ul>
+                                        </div>
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    )}
+
                     {module.resources && module.resources.length > 0 && (
                         <div style={{ marginTop: '10px' }}>
                             <p style={{ color: '#444' }}><strong>Resources:</strong></p>
@@ -178,7 +216,8 @@ export default function RoadmapTimeline({ modules }: RoadmapTimelineProps)
                     )}
                 </div>
                 );
-            })}
+            });
+            })()}
         </div>
     );
 }
