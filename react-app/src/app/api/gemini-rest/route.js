@@ -79,6 +79,21 @@ export async function POST(req) {
       if (failed.length > 0) {
         console.log(`⚠️  ${failed.length} job(s) failed, but continuing with ${successful.length} successful scrape(s)`);
       }
+
+      // Log what Gemini will see (for debugging)
+      console.log("\n=== WHAT GEMINI WILL SEE ===");
+      successful.forEach(result => {
+        console.log(`\n--- JOB ${result.jobNumber}: ${result.url} ---`);
+        console.log(result.content.substring(0, 500) + "...\n");
+      });
+      console.log("===========================\n");
+
+      // Store for sending back to frontend
+      var scrapedJobsData = successful.map(r => ({
+        jobNumber: r.jobNumber,
+        url: r.url,
+        content: r.content
+      }));
     } else {
       // No URLs provided (shouldn't happen based on frontend validation)
       jobRequirements = "";
@@ -150,7 +165,13 @@ export async function POST(req) {
       throw new Error("No text content in response");
     }
 
-    return new Response(JSON.stringify({ text }), { status: 200 });
+    return new Response(
+      JSON.stringify({
+        text,
+        scrapedJobs: scrapedJobsData || []
+      }),
+      { status: 200 }
+    );
   } catch (err) {
     console.error(err);
     return new Response(JSON.stringify({ error: err.message }), { status: 500 });

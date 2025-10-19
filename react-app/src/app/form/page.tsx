@@ -69,71 +69,79 @@ export default function Form() {
         setResponse("");
 
         try {
-            // Base prompt for Gemini - JOB-FOCUSED approach
-            let prompt = `You are a career advisor creating a PERSONALIZED learning roadmap.
+            // Base prompt for Gemini - MULTI-JOB AGGREGATION approach
+            let prompt = `You are a career advisor analyzing MULTIPLE job postings to create a PERSONALIZED learning roadmap.
 
-            CRITICAL: IGNORE ALL SOFT SKILLS AND NON-TECHNICAL REQUIREMENTS
-            - Skip: communication, teamwork, problem-solving, leadership, troubleshooting, debugging, etc.
-            - ONLY extract TECHNICAL skills and technologies
-            - ONLY extract specific, named technologies (Python, Java, React, AWS, Docker, Kubernetes, etc.)
-            - IGNORE vague terms like "web development", "distributed systems", "machine learning" unless they name specific tools
+            CRITICAL RULES:
+            1. IGNORE ALL SOFT SKILLS (communication, teamwork, problem-solving, leadership, troubleshooting, debugging)
+            2. ONLY extract TECHNICAL skills and technologies
+            3. ONLY extract specific, named technologies (Python, Java, React, AWS, Docker, Kubernetes, etc.)
+            4. IGNORE vague terms like "web development", "distributed systems", "machine learning" unless they name specific tools
 
-            STEP 1: READ THE JOB POSTING
-            If a URL is provided, VISIT IT and read the entire page content.
+            YOU WILL RECEIVE ${filledUrls.length} JOB POSTING(S). Your task:
 
-            STEP 2: FIND AND COPY THE REQUIREMENTS SECTION
-            Look for sections titled "Qualifications", "Requirements", "Minimum Qualifications", "Technical Requirements", or similar.
-            Copy the EXACT TEXT from that section word-for-word.
-            Put this in "jobPostingPreview" field.
+            STEP 0: ANALYZE JOB SIMILARITY
+            - Compare the job postings to see if they are similar career paths
+            - If jobs are VERY DIFFERENT (e.g., Frontend Developer vs Data Scientist), set "similarJobs": false
+            - If jobs are SIMILAR or OVERLAPPING (e.g., multiple Backend roles, or Full Stack roles), set "similarJobs": true
 
-            STEP 3: EXTRACT TECHNICAL REQUIREMENTS
-            From the text you copied, identify ONLY the specific technologies that are explicitly named:
-            - Programming languages (Java, Python, JavaScript, etc.)
-            - Frameworks and libraries (React, Spring Boot, Django, etc.)
-            - Databases (PostgreSQL, MongoDB, etc.)
-            - Cloud platforms (AWS, Azure, GCP, etc.)
-            - Tools (Docker, Git, etc.)
+            STEP 1: EXTRACT TECHNOLOGIES FROM EACH JOB
+            For each job posting, extract ALL specific technologies mentioned (programming languages, frameworks, databases, cloud platforms, tools, etc.)
 
-            CRITICAL:
-            - If the section says "familiarity with programming" without naming languages → jobRequirements: []
-            - If the section says "experience with Java, Ruby, Go" → jobRequirements: ["Java", "Ruby", "Go"]
-            - ONLY include technologies that are EXPLICITLY NAMED in the text
+            STEP 2: AGGREGATE AND PRIORITIZE BY FREQUENCY
+            Count how many jobs mention each technology:
+            - Technologies appearing in ALL ${filledUrls.length} jobs = CRITICAL (🔥)
+            - Technologies appearing in 50%+ of jobs = HIGH PRIORITY (⭐)
+            - Technologies appearing in 2+ jobs = MEDIUM PRIORITY (📌)
+            - Technologies appearing in 1 job = LOW PRIORITY (💡)
 
-            List these in the "jobRequirements" array.
-
-            STEP 2: IDENTIFY USER'S CURRENT SKILLS
+            STEP 3: IDENTIFY USER'S CURRENT SKILLS
             USER'S CURRENT SKILLS/EXPERIENCE:
             ${skills ? `Skills: ${skills}` : 'No skills provided'}
             ${fileData ? 'Resume: (PDF provided with work history)' : 'No resume provided'}
 
-            STEP 3: FIND THE GAPS
-            Compare job requirements to user skills. What specific technologies does the user NOT have?
+            STEP 4: FIND THE GAPS
+            Compare aggregated job requirements to user skills. What specific technologies does the user NOT have?
 
-            STEP 4: CREATE ROADMAP FOR GAPS ONLY
-            Create modules ONLY for the missing technical skills.
+            STEP 5: CREATE PRIORITIZED ROADMAP
+            Create modules for missing skills, starting with CRITICAL technologies first, then HIGH PRIORITY, then MEDIUM.
 
             Return your response as valid JSON in this exact format:
             {
-            "jobPostingPreview": "EXACT TEXT copied from the Requirements/Qualifications section of the job posting",
-            "jobRequirements": ["Java", "Ruby", "JavaScript"],
-            "currentSkills": ["JavaScript", "React"],
-            "missingSkills": ["Java", "Ruby"],
+            "similarJobs": true,
+            "totalJobsAnalyzed": ${filledUrls.length},
+            "jobSummary": "Brief description of the ${filledUrls.length} jobs (e.g., '3 Backend Engineering roles focusing on distributed systems')",
+            "technologyFrequency": {
+                "critical": ["Python", "Docker"],
+                "high": ["Kubernetes", "PostgreSQL"],
+                "medium": ["Redis"],
+                "low": ["GraphQL"]
+            },
+            "currentSkills": ["Python", "React"],
+            "missingSkills": {
+                "critical": ["Docker"],
+                "high": ["Kubernetes", "PostgreSQL"],
+                "medium": ["Redis"],
+                "low": ["GraphQL"]
+            },
             "modules": [
                 {
-                "title": "Learn Java Fundamentals",
-                "duration": "3-4 weeks",
-                "skills": ["Java"],
-                "description": "Master Java basics needed for Spring Boot development",
-                "resources": ["Java Tutorial on Oracle Docs", "Java Course on Coursera", "Java Practice on HackerRank"]
+                "title": "Learn Docker Fundamentals",
+                "priority": "critical",
+                "duration": "2-3 weeks",
+                "skills": ["Docker"],
+                "description": "Essential for all 3 jobs - containerization is a must-have",
+                "resources": ["Docker Official Tutorial", "Docker Course on Udemy", "Docker Practice Labs"]
                 }
             ]
             }
 
             CRITICAL REQUIREMENTS:
-            - "jobRequirements" must list SPECIFIC TECHNOLOGIES from the job posting, not generic skills
+            - If jobs are TOO DIFFERENT (unrelated career paths), set "similarJobs": false and mention this in jobSummary
             - ONLY create modules for technologies in "missingSkills"
             - Each module focuses on ONE specific technology
-            - Create 3-6 modules in learning order
+            - Include "priority" field in each module (critical/high/medium/low)
+            - Start with CRITICAL priority modules first
             - Provide 3+ FREE resources per module`;
 
             // Job URLs will be handled by the API - just mention them in the prompt
@@ -174,7 +182,18 @@ export default function Form() {
             });
 
             const data = await res.json();
-            
+
+            // Log scraped content to browser console for debugging
+            if (data.scrapedJobs && data.scrapedJobs.length > 0) {
+                console.log("\n🔍 === WHAT GEMINI SAW FROM URLS ===");
+                data.scrapedJobs.forEach((job: any) => {
+                    console.log(`\n--- JOB ${job.jobNumber}: ${job.url} ---`);
+                    console.log(job.content.substring(0, 1000));
+                    console.log("...\n");
+                });
+                console.log("=====================================\n");
+            }
+
             if (data.error) {
                 setResponse(data.error);
                 setModules([]);
