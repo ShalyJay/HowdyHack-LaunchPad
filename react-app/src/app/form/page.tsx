@@ -12,11 +12,14 @@ export default function Form() {
     const [skills, setSkills] = useState("");                       //skills text input
     const [jobUrls, setJobUrls] = useState<string[]>(["", "", "", "", ""]); //up to 5 job URLs
     const [visibleUrlInputs, setVisibleUrlInputs] = useState<number>(1); // Track how many URL inputs to show
-    const [timeFrame, setTimeFrame] = useState<string>("3 months"); //time frame for roadmap
+    const [timeFrameMonths, setTimeFrameMonths] = useState<number>(3); //time frame in months (1-12)
+    const [daysPerWeek, setDaysPerWeek] = useState<number>(5); //days per week to study (1-7)
+    const [studyIntensity, setStudyIntensity] = useState<string>("moderate"); //light, moderate, or intensive
     const [response, setResponse] = useState("");                   //Gemini API response
     const [modules, setModules] = useState<any[]>([]);              //Parsed roadmap
     const [loading, setLoading] = useState(false);                  //loading state while API
     const [loadingProgress, setLoadingProgress] = useState(0);      //progress percentage (0-100)
+    const [currentStep, setCurrentStep] = useState(0);              //wizard step (0=resume, 1=timeframe, 2=jobs, 3=loading, 4=roadmap)
 
     // CLARIFICATION FEATURE - Currently disabled
     // Uncomment these states if you want to re-enable the clarification feature
@@ -50,23 +53,39 @@ export default function Form() {
         reader.readAsDataURL(file);
     };
 
-    // entire form submission
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-        // Handle form submission here
-        console.log({resume, skills, jobUrls});
-
-        // require resume/skills AND at least one job URL
-        if (!fileData && !skills.trim()) {
-            alert("Please upload a resume or enter skills (or both)!");
-            return;
+    // Handle next button for each step
+    const handleNext = () => {
+        if (currentStep === 0) {
+            // Validate resume/skills
+            if (!fileData && !skills.trim()) {
+                alert("Please upload a resume or enter skills (or both)!");
+                return;
+            }
+            setCurrentStep(1);
+        } else if (currentStep === 1) {
+            setCurrentStep(2);
+        } else if (currentStep === 2) {
+            // Validate job URLs
+            const filledUrls = jobUrls.filter(url => url.trim() !== "");
+            if (filledUrls.length === 0) {
+                alert("Please enter at least one job posting URL!");
+                return;
+            }
+            // Move to loading screen and generate roadmap
+            setCurrentStep(3);
+            generateRoadmap();
         }
+    };
 
+    const handleBack = () => {
+        if (currentStep > 0) {
+            setCurrentStep(currentStep - 1);
+        }
+    };
+
+    // Generate roadmap
+    const generateRoadmap = async () => {
         const filledUrls = jobUrls.filter(url => url.trim() !== "");
-        if (filledUrls.length === 0) {
-            alert("Please enter at least one job posting URL!");
-            return;
-        }
 
         setLoading(true);
         setLoadingProgress(10); // Start progress
@@ -140,7 +159,9 @@ export default function Form() {
 
             STEP 5: CREATE PRIORITIZED ROADMAP (MAX 7 TECHNOLOGIES)
             CRITICAL RULE: Include a MAXIMUM of 7 technologies in the roadmap.
-            TIME CONSTRAINT: The user wants to complete this roadmap in ${timeFrame}. Structure the learning plan to be achievable within this timeframe.
+            TIME CONSTRAINT: The user has ${timeFrameMonths} months and will study ${daysPerWeek} days per week.
+            STUDY INTENSITY: ${studyIntensity} - ${studyIntensity === 'light' ? '1-2 hours/day' : studyIntensity === 'moderate' ? '2-3 hours/day' : '3-4 hours/day'}
+            Structure the learning plan to fit within approximately ${timeFrameMonths * 4} weeks total.
 
             Priority order:
             1. Include ALL CRITICAL technologies (appearing in all jobs) - these are non-negotiable
@@ -186,21 +207,39 @@ export default function Form() {
                 "weeklyBreakdown": [
                     {
                     "week": 1,
-                    "topics": ["Docker basics & installation", "Containers vs VMs", "Basic Docker commands"],
-                    "goals": "Understand containerization and run your first container",
-                    "estimatedHours": "8-10 hours"
+                    "dailyPlan": [
+                        {
+                        "day": 1,
+                        "topic": "Introduction to Docker & Containers",
+                        "tasks": ["Watch Docker intro video", "Install Docker Desktop", "Understand containers vs VMs"],
+                        "estimatedHours": "2 hours"
+                        },
+                        {
+                        "day": 2,
+                        "topic": "Basic Docker Commands",
+                        "tasks": ["Learn docker run, ps, stop", "Pull and run official images", "Practice with nginx container"],
+                        "estimatedHours": "2 hours"
+                        },
+                        {
+                        "day": 3,
+                        "topic": "Working with Images",
+                        "tasks": ["Understand Docker images", "Learn docker pull, images, rmi", "Explore Docker Hub"],
+                        "estimatedHours": "1.5 hours"
+                        }
+                    ],
+                    "weeklyGoal": "Understand containerization basics and run your first containers"
                     },
                     {
                     "week": 2,
-                    "topics": ["Dockerfile creation", "Building custom images", "Docker networking"],
-                    "goals": "Build and manage your own Docker images",
-                    "estimatedHours": "8-10 hours"
-                    },
-                    {
-                    "week": 3,
-                    "topics": ["Docker Compose", "Multi-container apps", "Practice project"],
-                    "goals": "Deploy a full-stack application with Docker Compose",
-                    "estimatedHours": "10-12 hours"
+                    "dailyPlan": [
+                        {
+                        "day": 1,
+                        "topic": "Creating Dockerfiles",
+                        "tasks": ["Learn Dockerfile syntax", "Create a simple Dockerfile", "Build your first image"],
+                        "estimatedHours": "2 hours"
+                        }
+                    ],
+                    "weeklyGoal": "Build and manage custom Docker images"
                     }
                 ],
                 "resources": ["Docker Official Tutorial", "FreeCodeCamp Docker Course", "Docker Practice Labs"]
@@ -210,19 +249,23 @@ export default function Form() {
 
             CRITICAL REQUIREMENTS:
             - MAXIMUM 7 MODULES (technologies) - Be selective! Choose the most industry-relevant technologies
-            - TIME FRAME: ${timeFrame} - Ensure the total learning plan is achievable in this time
-            - Each module = ONE technology, but include a "weeklyBreakdown" array with week-by-week topics (Coursera-style)
-            - Each week in the breakdown should have:
+            - TIME FRAME: ${timeFrameMonths} months, ${daysPerWeek} days/week - Total ~${timeFrameMonths * 4} weeks
+            - Each module = ONE technology with a "weeklyBreakdown" array
+            - Each week in weeklyBreakdown should have:
               * "week": number (1, 2, 3, etc. within that module)
-              * "topics": array of 3-5 specific topics for that week
-              * "goals": what the learner should achieve by end of week
-              * "estimatedHours": realistic time commitment (5-15 hours/week)
+              * "dailyPlan": array with ${daysPerWeek} study days (Day 1, Day 2, etc.)
+              * "weeklyGoal": what the learner achieves by week end
+            - Each day in dailyPlan should have:
+              * "day": number (1-${daysPerWeek})
+              * "topic": specific topic for that day
+              * "tasks": array of 2-4 concrete tasks to complete
+              * "estimatedHours": realistic hours matching ${studyIntensity} intensity (${studyIntensity === 'light' ? '1-2 hours' : studyIntensity === 'moderate' ? '2-3 hours' : '3-4 hours'})
             - If jobs are TOO DIFFERENT (unrelated career paths), set "similarJobs": false and mention this in jobSummary
             - ONLY create modules for technologies in "missingSkills"
             - Include "priority" field in each module (critical/high/medium/low)
             - Start with CRITICAL priority modules first, then HIGH, then MEDIUM
-            - Provide 3+ FREE resources per module (not per week)
-            - Set realistic "duration" (in weeks) based on the ${timeFrame} constraint`;
+            - Provide 3+ FREE resources per module
+            - Set realistic "duration" (in weeks) based on ${timeFrameMonths} months constraint`;
 
             // Job URLs will be handled by the API - just mention them in the prompt
             prompt += `\n\nYou will receive scraped content from ${filledUrls.length} job posting(s). Analyze ALL of them to find common patterns and important technologies.`;
@@ -318,9 +361,14 @@ export default function Form() {
                     console.log("jobPostingPreview:", parsed.jobPostingPreview);
                     console.log("jobRequirements:", parsed.jobRequirements);
 
+                    // Add schedule metadata to parsed object (start date = today)
+                    parsed.startDate = new Date().toISOString().split('T')[0];
+                    parsed.daysPerWeek = daysPerWeek;
+
                     // Set the entire parsed object (includes jobPostingPreview, jobRequirements, etc.)
                     setModules(parsed);
                     setResponse(""); // Clear text response since we have modules
+                    setCurrentStep(4); // Move to roadmap display
 
                     // } // End of clarification block
                 } catch (parseError) {
@@ -353,177 +401,223 @@ export default function Form() {
         <div className="min-h-screen flex items-center justify-center p-8">
             <div className="w-full max-w-2xl">
 
-                {/* Title */}
-                <h1 className="text-3xl font-bold text-center mb-8">
-                    Generate Roadmap
-                </h1>
+                {/* Step 0: Resume & Skills */}
+                {currentStep === 0 && (
+                    <div className="space-y-6">
+                        <h1 className="text-3xl font-bold text-center mb-8">
+                            Upload Resume & Skills
+                        </h1>
 
-                <form onSubmit={handleSubmit} className="space-y-6">
-                    <div>
-                        <label className="block mb-2">
-                            Upload Resume
-                        </label>
-                        <div className="border-2 border-dashed rounded-lg p-6 text-center">
-                        <input
-                            type="file"
-                            accept=".pdf"
-                            onChange={handleResumeUpload}
-                            className="hidden"
-                            id="resume-upload"
-                        />
-                        <label htmlFor="resume-upload" className="cursor-pointer">
-                            {resume ? (
-                            <div>
-                                <p className="text-lg text-green-600">✓ {resume.name}</p>
-                                <p className="text-sm mt-2 text-gray-500">click to change</p>
+                        <div>
+                            <label className="block mb-2">
+                                Upload Resume
+                            </label>
+                            <div className="border-2 border-dashed rounded-lg p-6 text-center">
+                                <input
+                                    type="file"
+                                    accept=".pdf"
+                                    onChange={handleResumeUpload}
+                                    className="hidden"
+                                    id="resume-upload"
+                                />
+                                <label htmlFor="resume-upload" className="cursor-pointer">
+                                    {resume ? (
+                                        <div>
+                                            <p className="text-lg text-green-600">✓ {resume.name}</p>
+                                            <p className="text-sm mt-2 text-gray-500">click to change</p>
+                                        </div>
+                                    ) : (
+                                        <div>
+                                            <p className="text-lg">📄 Click to upload PDF</p>
+                                            <p className="text-sm mt-2 text-gray-500">or drag and drop</p>
+                                        </div>
+                                    )}
+                                </label>
                             </div>
-                            ) : (
-                            <div>
-                                <p className="text-lg">📄 Click to upload PDF</p>
-                                <p className="text-sm mt-2 text-gray-500">or drag and drop</p>
-                            </div>
-                            )}
-                        </label>
                         </div>
-                    </div>
 
-                    <div>
-                        <label className="block mb-2">Your Skills</label>
-                        <textarea
-                            value={skills}
-                            onChange={(e) => setSkills(e.target.value)}
-                            placeholder="e.g., JavaScript, React, Python..."
-                            className="w-full p-3 border rounded h-20"
-                        />
-                    </div>
-
-                    <div>
-                        <label className="block mb-2">Time Frame</label>
-                        <select
-                            value={timeFrame}
-                            onChange={(e) => setTimeFrame(e.target.value)}
-                            className="w-full p-3 border rounded"
-                        >
-                            <option value="1 month">1 month</option>
-                            <option value="2 months">2 months</option>
-                            <option value="3 months">3 months</option>
-                            <option value="6 months">6 months</option>
-                            <option value="1 year">1 year</option>
-                            <option value="2 years">2 years</option>
-                        </select>
-                    </div>
-
-                    <div>
-                        <label className="block mb-2">
-                            Job Posting URLs (1-5 jobs)
-                            {jobUrls.filter(url => url.trim() !== "").length > 0 && (
-                                <span className="ml-2 text-sm text-gray-500">
-                                    ({jobUrls.filter(url => url.trim() !== "").length}/5 added)
-                                </span>
-                            )}
-                        </label>
-                        <p className="text-sm text-gray-600 mb-3">
-                            Enter job URLs you're interested in. We'll analyze them and create a roadmap with the most important skills.
-                            <br />
-                            <span className="text-xs text-gray-500">
-                                ⚠️ Note: Some sites (Indeed, LinkedIn) have bot protection and may not work.
-                            </span>
-                        </p>
-                        <div className="space-y-3">
-                            {jobUrls.map((url, index) => {
-                                // Only show this input if it's within the visible count
-                                if (index >= visibleUrlInputs) return null;
-
-                                return (
-                                    <div
-                                        key={index}
-                                        className={index > 0 ? "animate-fadeIn" : ""}
-                                    >
-                                        <input
-                                            type="url"
-                                            value={url}
-                                            onChange={(e) => {
-                                                const newUrls = [...jobUrls];
-                                                newUrls[index] = e.target.value;
-                                                setJobUrls(newUrls);
-
-                                                // Auto-hide subsequent empty inputs when user clears a field
-                                                if (e.target.value.trim() === "" && index < visibleUrlInputs - 1) {
-                                                    // If this input is now empty and there are inputs after it, hide them
-                                                    setVisibleUrlInputs(index + 1);
-                                                }
-                                            }}
-                                            onKeyDown={(e) => {
-                                                // When user presses Enter, show the next input (if not at max)
-                                                if (e.key === 'Enter' && visibleUrlInputs < 5 && jobUrls[index].trim() !== "") {
-                                                    e.preventDefault(); // Prevent form submission
-                                                    setVisibleUrlInputs(visibleUrlInputs + 1);
-                                                }
-                                            }}
-                                            placeholder={`Job ${index + 1} URL ${index === 0 ? '(required)' : '(optional)'}`}
-                                            className="w-full p-3 border rounded"
-                                        />
-                                    </div>
-                                );
-                            })}
-                        </div>
-                    </div>
-
-                    {/* CLARIFICATION FEATURE - Commented out */}
-                    {/* To re-enable:
-                        1. Uncomment the state variables at the top of the file
-                        2. Uncomment the clarification logic in handleSubmit
-                        3. Uncomment this UI section
-                        4. Import ClarificationBox component: import ClarificationBox from '../components/ClarificationBox';
-                    */}
-                    {/*
-                    <div className="flex items-center justify-between">
-                        <span className="text-sm text-gray-600">Clarify vague requirements</span>
-                        <button
-                            type="button"
-                            onClick={() => setUseClarifications(!useClarifications)}
-                            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                                useClarifications ? 'bg-green-500' : 'bg-gray-300'
-                            }`}
-                        >
-                            <span
-                                className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                                    useClarifications ? 'translate-x-6' : 'translate-x-1'
-                                }`}
+                        <div>
+                            <label className="block mb-2">Your Skills</label>
+                            <textarea
+                                value={skills}
+                                onChange={(e) => setSkills(e.target.value)}
+                                placeholder="e.g., JavaScript, React, Python..."
+                                className="w-full p-3 border rounded h-20"
                             />
-                        </button>
-                    </div>
+                        </div>
 
-                    {clarificationNeeded && clarificationQuestions.length > 0 && (
-                        <ClarificationBox
-                            highPriority={highPriority}
-                            lowPriority={lowPriority}
-                            questions={clarificationQuestions}
-                            userAnswers={userAnswers}
-                            onAnswerChange={setUserAnswers}
-                        />
-                    )}
-                    */}
-
-                    <div className="flex items-center justify-center gap-4">
-                        <Link href="/">
-                            <button type="button" className="p-3 text-2xl hover:opacity-70">
-                                ←
-                            </button>
-                        </Link>
+                        <div className="flex justify-between mt-8">
+                            <Link href="/">
+                                <button type="button" className="px-6 py-3 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-all">
+                                    Back to Home
+                                </button>
+                            </Link>
                             <button
-                            type="submit"
-                            disabled={loading}
-                            className="px-6 py-3 bg-white/20 text-white rounded-full
-                                hover:bg-white/40 hover:scale-110 transition-all backdrop-blur-sm border
-                                border-white/30 cursor-pointer
-                                disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100">
-                                {loading ? "Generating..." : "Generate Roadmap"}
+                                onClick={handleNext}
+                                className="px-6 py-3 bg-white/20 text-white rounded-lg hover:bg-white/40 transition-all backdrop-blur-sm border border-white/30"
+                            >
+                                Next
                             </button>
+                        </div>
                     </div>
+                )}
 
-                    {/* Progress Bar */}
-                    {loading && (
+                {/* Step 1: Time Frame */}
+                {currentStep === 1 && (
+                    <div className="space-y-6">
+                        <h1 className="text-3xl font-bold text-center mb-8">
+                            Time Frame & Study Plan
+                        </h1>
+
+                        <div className="grid grid-cols-2 gap-4">
+                            <div>
+                                <label className="block mb-2">Time Frame (months)</label>
+                                <select
+                                    value={timeFrameMonths}
+                                    onChange={(e) => setTimeFrameMonths(Number(e.target.value))}
+                                    className="w-full p-3 border rounded"
+                                >
+                                    {[...Array(12)].map((_, i) => (
+                                        <option key={i + 1} value={i + 1}>
+                                            {i + 1} {i + 1 === 1 ? 'month' : 'months'}
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
+                            <div>
+                                <label className="block mb-2">Days per week</label>
+                                <select
+                                    value={daysPerWeek}
+                                    onChange={(e) => setDaysPerWeek(Number(e.target.value))}
+                                    className="w-full p-3 border rounded"
+                                >
+                                    {[...Array(7)].map((_, i) => (
+                                        <option key={i + 1} value={i + 1}>
+                                            {i + 1} {i + 1 === 1 ? 'day' : 'days'} per week
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label className="block mb-2">Study Intensity</label>
+                            <select
+                                value={studyIntensity}
+                                onChange={(e) => setStudyIntensity(e.target.value)}
+                                className="w-full p-3 border rounded"
+                            >
+                                <option value="light">Light (1-2 hours/day)</option>
+                                <option value="moderate">Moderate (2-3 hours/day)</option>
+                                <option value="intensive">Intensive (3-4 hours/day)</option>
+                            </select>
+                        </div>
+
+                        <div className="flex justify-between mt-8">
+                            <button
+                                onClick={handleBack}
+                                className="px-6 py-3 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-all"
+                            >
+                                Back
+                            </button>
+                            <button
+                                onClick={handleNext}
+                                className="px-6 py-3 bg-white/20 text-white rounded-lg hover:bg-white/40 transition-all backdrop-blur-sm border border-white/30"
+                            >
+                                Next
+                            </button>
+                        </div>
+                    </div>
+                )}
+
+                {/* Step 2: Job Postings */}
+                {currentStep === 2 && (
+                    <div className="space-y-6">
+                        <h1 className="text-3xl font-bold text-center mb-8">
+                            Job Posting URLs
+                        </h1>
+
+                        <div>
+                            <label className="block mb-2">
+                                Job Posting URLs (1-5 jobs)
+                                {jobUrls.filter(url => url.trim() !== "").length > 0 && (
+                                    <span className="ml-2 text-sm text-gray-500">
+                                        ({jobUrls.filter(url => url.trim() !== "").length}/5 added)
+                                    </span>
+                                )}
+                            </label>
+                            <p className="text-sm text-gray-600 mb-3">
+                                Enter job URLs you're interested in. We'll analyze them and create a roadmap with the most important skills.
+                                <br />
+                                <span className="text-xs text-gray-500">
+                                    ⚠️ Note: Some sites (Indeed, LinkedIn) have bot protection and may not work.
+                                </span>
+                            </p>
+                            <div className="space-y-3">
+                                {jobUrls.map((url, index) => {
+                                    // Only show this input if it's within the visible count
+                                    if (index >= visibleUrlInputs) return null;
+
+                                    return (
+                                        <div
+                                            key={index}
+                                            className={index > 0 ? "animate-fadeIn" : ""}
+                                        >
+                                            <input
+                                                type="url"
+                                                value={url}
+                                                onChange={(e) => {
+                                                    const newUrls = [...jobUrls];
+                                                    newUrls[index] = e.target.value;
+                                                    setJobUrls(newUrls);
+
+                                                    // Auto-hide subsequent empty inputs when user clears a field
+                                                    if (e.target.value.trim() === "" && index < visibleUrlInputs - 1) {
+                                                        // If this input is now empty and there are inputs after it, hide them
+                                                        setVisibleUrlInputs(index + 1);
+                                                    }
+                                                }}
+                                                onKeyDown={(e) => {
+                                                    // When user presses Enter, show the next input (if not at max)
+                                                    if (e.key === 'Enter' && visibleUrlInputs < 5 && jobUrls[index].trim() !== "") {
+                                                        e.preventDefault(); // Prevent form submission
+                                                        setVisibleUrlInputs(visibleUrlInputs + 1);
+                                                    }
+                                                }}
+                                                placeholder={`Job ${index + 1} URL ${index === 0 ? '(required)' : '(optional)'}`}
+                                                className="w-full p-3 border rounded"
+                                            />
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        </div>
+
+                        <div className="flex justify-between mt-8">
+                            <button
+                                onClick={handleBack}
+                                className="px-6 py-3 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-all"
+                            >
+                                Back
+                            </button>
+                            <button
+                                onClick={handleNext}
+                                disabled={loading}
+                                className="px-6 py-3 bg-white/20 text-white rounded-lg hover:bg-white/40 transition-all backdrop-blur-sm border border-white/30 disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                                Generate Roadmap
+                            </button>
+                        </div>
+                    </div>
+                )}
+
+                {/* Step 3: Loading */}
+                {currentStep === 3 && (
+                    <div className="space-y-6">
+                        <h1 className="text-3xl font-bold text-center mb-8">
+                            Generating Your Roadmap
+                        </h1>
+
                         <div className="mt-6">
                             <div className="w-full bg-gray-200 rounded-full h-4 overflow-hidden">
                                 <div
@@ -539,20 +633,35 @@ export default function Form() {
                                 {loadingProgress === 100 && "Complete!"}
                             </p>
                         </div>
-                    )}
-                </form>
-                
-                {/* Response Timeline */}
-                <RoadmapTimeline modules={modules} />
+                    </div>
+                )}
 
-                {/* fallback: show text response if json parsing failed */}
-                {response && (
-                    <div className="mt-8 p-4 border rounded">
-                        <h2 className="text-xl font-bold mb-4">Your Learning
-                            Roadmap:
-                        </h2>
-                        <div className="whitespace-pre-wrap">
-                            {response}
+                {/* Step 4: Roadmap */}
+                {currentStep === 4 && (
+                    <div className="space-y-6">
+                        <h1 className="text-3xl font-bold text-center mb-8">
+                            Your Learning Roadmap
+                        </h1>
+
+                        <RoadmapTimeline modules={modules} />
+
+                        {/* fallback: show text response if json parsing failed */}
+                        {response && (
+                            <div className="mt-8 p-4 border rounded">
+                                <h2 className="text-xl font-bold mb-4">Your Learning Roadmap:</h2>
+                                <div className="whitespace-pre-wrap">
+                                    {response}
+                                </div>
+                            </div>
+                        )}
+
+                        <div className="flex justify-center mt-8">
+                            <button
+                                onClick={() => setCurrentStep(0)}
+                                className="px-6 py-3 bg-white/20 text-white rounded-lg hover:bg-white/40 transition-all backdrop-blur-sm border border-white/30"
+                            >
+                                Create New Roadmap
+                            </button>
                         </div>
                     </div>
                 )}

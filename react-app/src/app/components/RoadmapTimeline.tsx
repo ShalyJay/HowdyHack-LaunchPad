@@ -29,10 +29,30 @@ export default function RoadmapTimeline({ modules }: RoadmapTimelineProps)
     const technologyFrequency = !Array.isArray(modules) ? modules?.technologyFrequency : null;
     const missingSkillsByPriority = !Array.isArray(modules) ? modules?.missingSkills : null;
 
+    // Schedule metadata
+    const startDate = !Array.isArray(modules) ? modules?.startDate : null;
+    const daysPerWeek = !Array.isArray(modules) ? modules?.daysPerWeek : 5;
+
     // If no modules, don't show anything
     if (!moduleArray || moduleArray.length === 0) {
         return null;
     }
+
+    // Helper function to calculate due date for a specific day
+    const calculateDueDate = (weekNumber: number, dayNumber: number): string => {
+        if (!startDate) return '';
+
+        const start = new Date(startDate);
+        // Calculate total study days elapsed
+        const totalDaysElapsed = (weekNumber - 1) * daysPerWeek + (dayNumber - 1);
+
+        // Add days to start date
+        const dueDate = new Date(start);
+        dueDate.setDate(start.getDate() + totalDaysElapsed);
+
+        // Format as "Mon, Jan 15"
+        return dueDate.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+    };
 
     return (
         <div>
@@ -169,38 +189,73 @@ export default function RoadmapTimeline({ modules }: RoadmapTimelineProps)
                         ))}
                     </div>
 
-                    {/* Weekly Breakdown - Coursera style */}
+                    {/* Weekly Breakdown with Daily Plan - Coursera style */}
                     {module.weeklyBreakdown && module.weeklyBreakdown.length > 0 && (
                         <div style={{ marginTop: '15px' }}>
-                            <p style={{ color: '#444', fontWeight: 'bold', marginBottom: '10px' }}>📅 Week-by-Week Plan:</p>
-                            {module.weeklyBreakdown.map((week: any, weekIndex: number) => {
-                                globalWeekCounter++; // Increment for each week across all modules
-                                return (
-                                    <div key={weekIndex} style={{
-                                        marginBottom: '12px',
-                                        padding: '12px',
-                                        backgroundColor: '#f9f9f9',
-                                        borderLeft: '4px solid #4CAF50',
-                                        borderRadius: '4px'
-                                    }}>
-                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
-                                            <strong style={{ color: '#2e7d32' }}>Week {globalWeekCounter}</strong>
-                                            <span style={{ fontSize: '12px', color: '#666' }}>{week.estimatedHours}</span>
+                            <p style={{ color: '#444', fontWeight: 'bold', marginBottom: '10px' }}>📅 Week-by-Week Study Plan:</p>
+                            {(() => {
+                                let moduleDayCounter = 0; // Track continuous day numbers within this module
+
+                                return module.weeklyBreakdown.map((week: any, weekIndex: number) => {
+                                    globalWeekCounter++; // Increment for each week across all modules
+                                    return (
+                                        <div key={weekIndex} style={{
+                                            marginBottom: '16px',
+                                            padding: '14px',
+                                            backgroundColor: '#f0f7ff',
+                                            border: '2px solid #4CAF50',
+                                            borderRadius: '8px'
+                                        }}>
+                                            <div style={{ marginBottom: '12px' }}>
+                                                <strong style={{ color: '#2e7d32', fontSize: '16px' }}>Week {globalWeekCounter}</strong>
+                                                <p style={{ color: '#555', fontSize: '14px', margin: '6px 0', fontStyle: 'italic' }}>
+                                                    🎯 {week.weeklyGoal}
+                                                </p>
+                                            </div>
+
+                                            {/* Daily Plan */}
+                                            {week.dailyPlan && week.dailyPlan.length > 0 && (
+                                                <div style={{ marginTop: '10px' }}>
+                                                    {week.dailyPlan.map((day: any, dayIndex: number) => {
+                                                        moduleDayCounter++; // Increment day counter for this module
+                                                        const dueDate = calculateDueDate(globalWeekCounter, day.day);
+                                                        return (
+                                                            <div key={dayIndex} style={{
+                                                                marginBottom: '10px',
+                                                                padding: '10px',
+                                                                backgroundColor: 'white',
+                                                                borderLeft: '3px solid #2196F3',
+                                                                borderRadius: '4px'
+                                                            }}>
+                                                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
+                                                                    <div style={{ flex: 1 }}>
+                                                                        <strong style={{ color: '#1976d2', fontSize: '14px' }}>Day {moduleDayCounter}: {day.topic}</strong>
+                                                                        {dueDate && (
+                                                                            <div style={{ fontSize: '11px', color: '#888', marginTop: '2px' }}>
+                                                                                📅 Due: {dueDate}
+                                                                            </div>
+                                                                        )}
+                                                                    </div>
+                                                                    <span style={{ fontSize: '11px', color: '#666', backgroundColor: '#e3f2fd', padding: '2px 8px', borderRadius: '10px', marginLeft: '10px' }}>
+                                                                        {day.estimatedHours}
+                                                                    </span>
+                                                                </div>
+                                                                <ul style={{ margin: '6px 0', paddingLeft: '20px' }}>
+                                                                    {day.tasks.map((task: string, taskIndex: number) => (
+                                                                        <li key={taskIndex} style={{ color: '#444', fontSize: '13px', marginBottom: '2px' }}>
+                                                                            {task}
+                                                                        </li>
+                                                                    ))}
+                                                                </ul>
+                                                            </div>
+                                                        );
+                                                    })}
+                                                </div>
+                                            )}
                                         </div>
-                                        <p style={{ color: '#555', fontSize: '14px', margin: '6px 0', fontStyle: 'italic' }}>
-                                            🎯 {week.goals}
-                                        </p>
-                                        <div style={{ marginTop: '8px' }}>
-                                            <strong style={{ color: '#444', fontSize: '13px' }}>Topics:</strong>
-                                            <ul style={{ margin: '4px 0', paddingLeft: '20px' }}>
-                                                {week.topics.map((topic: string, topicIndex: number) => (
-                                                    <li key={topicIndex} style={{ color: '#444', fontSize: '13px' }}>{topic}</li>
-                                                ))}
-                                            </ul>
-                                        </div>
-                                    </div>
-                                );
-                            })}
+                                    );
+                                });
+                            })()}
                         </div>
                     )}
 
