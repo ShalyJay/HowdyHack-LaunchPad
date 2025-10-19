@@ -378,78 +378,63 @@ export default function LoadingRoadmapPage() {
         let studyDayCounter = 0;
         const [hours, minutes] = studyTime.split(':');
 
-        // Convert selected days (0-6) to RRULE day format (SU,MO,TU,WE,TH,FR,SA)
-        const dayMap = ['SU', 'MO', 'TU', 'WE', 'TH', 'FR', 'SA'];
-        const byDayString = selectedDays.map(day => dayMap[day]).join(',');
-
         moduleArray.forEach((module: any, moduleIndex: number) => {
             if (module.weeklyBreakdown && module.weeklyBreakdown.length > 0) {
-                // Calculate total occurrences for this module
-                let totalDays = 0;
                 module.weeklyBreakdown.forEach((week: any) => {
                     if (week.dailyPlan && week.dailyPlan.length > 0) {
-                        totalDays += week.dailyPlan.length;
+                        week.dailyPlan.forEach((day: any) => {
+                            // Find the Nth study day
+                            // Parse date carefully to avoid timezone issues
+                            const [year, month, dayNum] = startDate.split('-').map(Number);
+                            let currentDate = new Date(year, month - 1, dayNum);
+                            let foundStudyDays = 0;
+
+                            while (true) {
+                                const dayOfWeek = currentDate.getDay();
+
+                                if (selectedDays.includes(dayOfWeek)) {
+                                    if (foundStudyDays === studyDayCounter) {
+                                        // This is our study day!
+                                        const year = currentDate.getFullYear();
+                                        const month = String(currentDate.getMonth() + 1).padStart(2, '0');
+                                        const day = String(currentDate.getDate()).padStart(2, '0');
+                                        const dateStr = `${year}${month}${day}`;
+                                        const startTime = `${dateStr}T${hours.padStart(2, '0')}${minutes.padStart(2, '0')}00`;
+
+                                        // Parse duration
+                                        const durationMatch = day.estimatedHours?.match(/(\d+\.?\d*)/);
+                                        const durationHours = durationMatch ? parseFloat(durationMatch[1]) : 2;
+
+                                        const endDate = new Date(currentDate);
+                                        endDate.setHours(parseInt(hours) + Math.floor(durationHours));
+                                        endDate.setMinutes(parseInt(minutes) + ((durationHours % 1) * 60));
+                                        const endTime = `${dateStr}T${String(endDate.getHours()).padStart(2, '0')}${String(endDate.getMinutes()).padStart(2, '0')}00`;
+
+                                        const summary = `[${module.title}] ${day.topic}`;
+                                        const tasks = Array.isArray(day.tasks) ? day.tasks.join('\\n') : '';
+                                        const description = `Module: ${module.title}\\n\\nTasks:\\n${tasks}`;
+
+                                        icsContent += `BEGIN:VEVENT\r\n`;
+                                        icsContent += `DTSTART:${startTime}\r\n`;
+                                        icsContent += `DTEND:${endTime}\r\n`;
+                                        icsContent += `SUMMARY:${summary}\r\n`;
+                                        icsContent += `DESCRIPTION:${description}\r\n`;
+                                        icsContent += `CATEGORIES:Roadmap,${module.title}\r\n`;
+                                        icsContent += `UID:${dateStr}-${studyDayCounter}@roadmap\r\n`;
+                                        icsContent += `RELATED-TO:module-${moduleIndex}@roadmap\r\n`;
+                                        icsContent += `END:VEVENT\r\n`;
+
+                                        break;
+                                    }
+                                    foundStudyDays++;
+                                }
+                                currentDate.setDate(currentDate.getDate() + 1);
+                            }
+
+                            studyDayCounter++;
+                        });
                     }
                 });
-
-                if (totalDays > 0) {
-                    // Find the first study day for this module
-                    let currentDate = new Date(startDate);
-                    let foundStudyDays = 0;
-
-                    while (foundStudyDays < studyDayCounter) {
-                        const dayOfWeek = currentDate.getDay();
-                        if (selectedDays.includes(dayOfWeek)) {
-                            foundStudyDays++;
-                        }
-                        if (foundStudyDays < studyDayCounter) {
-                            currentDate.setDate(currentDate.getDate() + 1);
-                        }
-                    }
-
-                    // Ensure we're on a valid study day
-                    while (!selectedDays.includes(currentDate.getDay())) {
-                        currentDate.setDate(currentDate.getDate() + 1);
-                    }
-
-                    const dateStr = currentDate.toISOString().split('T')[0].replace(/-/g, '');
-                    const startTime = `${dateStr}T${hours.padStart(2, '0')}${minutes.padStart(2, '0')}00`;
-
-                    // Use average duration or default to 2 hours
-                    let avgDuration = 2;
-                    const firstDay = module.weeklyBreakdown[0]?.dailyPlan?.[0];
-                    if (firstDay?.estimatedHours) {
-                        const durationMatch = firstDay.estimatedHours.match(/(\d+\.?\d*)/);
-                        avgDuration = durationMatch ? parseFloat(durationMatch[1]) : 2;
-                    }
-
-                    const endDate = new Date(currentDate);
-                    endDate.setHours(parseInt(hours) + Math.floor(avgDuration));
-                    endDate.setMinutes(parseInt(minutes) + ((avgDuration % 1) * 60));
-                    const endTime = `${dateStr}T${String(endDate.getHours()).padStart(2, '0')}${String(endDate.getMinutes()).padStart(2, '0')}00`;
-
-                    // Build description with all topics
-                    let description = `Module: ${module.title}\\n\\n`;
-                    description += `Topics covered:\\n`;
-                    module.weeklyBreakdown.forEach((week: any, weekIdx: number) => {
-                        if (week.dailyPlan && week.dailyPlan.length > 0) {
-                            week.dailyPlan.forEach((day: any, dayIdx: number) => {
-                                description += `Day ${studyDayCounter + weekIdx + dayIdx + 1}: ${day.topic}\\n`;
-                            });
-                        }
-                    });
-
-                    icsContent += `BEGIN:VEVENT\r\n`;
-                    icsContent += `DTSTART:${startTime}\r\n`;
-                    icsContent += `DTEND:${endTime}\r\n`;
-                    icsContent += `RRULE:FREQ=DAILY;BYDAY=${byDayString};COUNT=${totalDays}\r\n`;
-                    icsContent += `SUMMARY:${module.title}\r\n`;
-                    icsContent += `DESCRIPTION:${description}\r\n`;
-                    icsContent += `UID:module-${moduleIndex}@roadmap\r\n`;
-                    icsContent += `END:VEVENT\r\n`;
-
-                    studyDayCounter += totalDays;
-                }
             }
         });
 
