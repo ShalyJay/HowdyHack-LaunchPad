@@ -29,7 +29,7 @@ interface RoadmapContextType {
     loading: boolean;
     setLoading: (loading: boolean) => void;
     loadingProgress: number;
-    setLoadingProgress: (progress: number) => void;
+    setLoadingProgress: (progress: number | ((prev: number) => number)) => void;
 }
 
 const RoadmapContext = createContext<RoadmapContextType | undefined>(undefined);
