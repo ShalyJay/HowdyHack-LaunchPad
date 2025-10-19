@@ -149,8 +149,9 @@ export default function Form() {
                         </Link>
                             <button type="submit" className="px-6 py-3 bg-white/20 text-white rounded-full 
                                 hover:bg-white/40 hover:scale-110 transition-all backdrop-blur-sm border 
-                                border-white/30 cursor-pointer">
-                                Generate Roadmap
+                                border-white/30 cursor-pointer 
+                                disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100">
+                                {loading ? "Generating..." : "Generate Roadmap"}
                             </button>
                     </div>
 
