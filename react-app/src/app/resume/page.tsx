@@ -88,6 +88,7 @@ export default function ResumePage() {
                             onChange={(e) => setSkills(e.target.value)}
                             placeholder="e.g., JavaScript, React, Python..."
                             className="w-full p-3 border rounded h-20"
+                            style={{ backgroundColor: 'white', color: 'var(--text-primary)' }}
                         />
                     </div>
 
@@ -95,13 +96,27 @@ export default function ResumePage() {
                         <button
                             type="button"
                             onClick={() => router.push('/')}
-                            className="px-6 py-3 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-all"
+                            className="px-6 py-3 rounded-lg transition-all"
+                            style={{ backgroundColor: 'white', color: 'black', border: '1px solid rgba(0,0,0,0.1)' }}
+                            onMouseEnter={(e) => {
+                                e.currentTarget.style.backgroundColor = '#f5f5f5';
+                            }}
+                            onMouseLeave={(e) => {
+                                e.currentTarget.style.backgroundColor = 'white';
+                            }}
                         >
                             Back
                         </button>
                         <button
                             onClick={handleNext}
-                            className="px-6 py-3 bg-white/20 text-white rounded-lg hover:bg-white/40 transition-all backdrop-blur-sm border border-white/30"
+                            className="px-6 py-3 rounded-lg transition-all"
+                            style={{ backgroundColor: 'black', color: 'white' }}
+                            onMouseEnter={(e) => {
+                                e.currentTarget.style.backgroundColor = '#333';
+                            }}
+                            onMouseLeave={(e) => {
+                                e.currentTarget.style.backgroundColor = 'black';
+                            }}
                         >
                             Next
                         </button>

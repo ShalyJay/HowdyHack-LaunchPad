@@ -1,28 +1,49 @@
 @import "tailwindcss";
 
 :root {
-  /* Space/Cloud Theme Colors */
-  --bg-primary: #0f0f23;
-  --bg-secondary: #1a1a3e;
-  --bg-gradient-start: #1a1a3e;
-  --bg-gradient-end: #0f0f23;
+  /* Font Family Variables */
+  --font-body: var(--font-archivo), -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-heading: var(--font-archivo), sans-serif;
 
-  --purple-light: #b794f6;
-  --purple-main: #9333ea;
-  --purple-dark: #7c3aed;
+  /* Minimalist Antique Space Theme - Light Mode */
+  /* Cream/beige paper backgrounds - like aged parchment */
+  --bg-primary: #f5f1e8;
+  --bg-secondary: #ebe5d9;
+  --bg-gradient-start: #f5f1e8;
+  --bg-gradient-end: #ebe5d9;
 
-  --pink-light: #f9a8d4;
-  --pink-main: #ec4899;
-  --pink-dark: #db2777;
+  /* Purple but it'ac actually ORANGE- antique telescope brass undertones */ 
+  --purple-light: #de944f;
+  --purple-main: #cc6c13;
+  --purple-dark: #a34f00;
 
-  --blue-light: #93c5fd;
-  --blue-main: #3b82f6;
-  --blue-dark: #2563eb;
+  /* Pink but it's MAROON red - rustic mars tones */
+  --pink-light: #a75454;
+  --pink-main: #9b1b1b;
+  --pink-dark: #500101;
 
+  /* BLUE - aged star chart ink */
+  --blue-light: #8699ad;
+  --blue-main: #3d5a75;
+  --blue-dark: #053d6e;
+
+  /* Text colors - dark on light */
   --white: #ffffff;
-  --text-primary: #f8fafc;
-  --text-secondary: #cbd5e1;
-  --text-muted: #94a3b8;
+  --text-primary: #2a2521;
+  --text-secondary: #5a5449;
+  --text-muted: #8a847a;
+
+  /* RGBA variants for transparency effects */
+  --purple-light-rgb: 155, 139, 180;
+  --purple-main-rgb: 107, 91, 149;
+  --purple-dark-rgb: 74, 64, 99;
+  --pink-light-rgb: 201, 152, 152;
+  --pink-main-rgb: 176, 125, 125;
+  --pink-dark-rgb: 139, 94, 94;
+  --blue-light-rgb: 134, 153, 173;
+  --blue-main-rgb: 91, 124, 153;
+  --blue-dark-rgb: 61, 90, 117;
+  --slate-rgb: 138, 132, 122;
 }
 
 @theme inline {
@@ -34,20 +55,23 @@ body {
   background: linear-gradient(135deg, var(--bg-gradient-start) 0%, var(--bg-gradient-end) 100%);
   background-attachment: fixed;
   color: var(--text-primary);
-  font-family: var(--font-inter), -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-family: var(--font-archivo), -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   margin: 0;
   padding: 0;
   padding-top: 80px; /* Space for fixed navbar */
-  min-height: 100vh;
+  height: 100vh;
+  overflow: hidden;
 }
 
 html {
   margin: 0;
   padding: 0;
+  overflow: hidden;
+  height: 100vh;
 }
 
 h1, h2, h3, h4, h5, h6 {
-  font-family: var(--font-poppins), sans-serif;
+  font-family: var(--font-archivo), sans-serif;
   font-weight: 600;
 }
 

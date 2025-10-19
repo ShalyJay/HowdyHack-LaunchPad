@@ -37,6 +37,7 @@ export default function TimeframePage() {
                                 value={timeFrameMonths}
                                 onChange={(e) => setTimeFrameMonths(Number(e.target.value))}
                                 className="w-full p-3 border rounded"
+                                style={{ backgroundColor: 'white', color: 'var(--text-primary)' }}
                             >
                                 {[...Array(12)].map((_, i) => (
                                     <option key={i + 1} value={i + 1}>
@@ -51,6 +52,7 @@ export default function TimeframePage() {
                                 value={daysPerWeek}
                                 onChange={(e) => setDaysPerWeek(Number(e.target.value))}
                                 className="w-full p-3 border rounded"
+                                style={{ backgroundColor: 'white', color: 'var(--text-primary)' }}
                             >
                                 {[...Array(7)].map((_, i) => (
                                     <option key={i + 1} value={i + 1}>
@@ -67,6 +69,7 @@ export default function TimeframePage() {
                             value={studyIntensity}
                             onChange={(e) => setStudyIntensity(e.target.value)}
                             className="w-full p-3 border rounded"
+                            style={{ backgroundColor: 'white', color: 'var(--text-primary)' }}
                         >
                             <option value="light">Light (1-2 hours/day)</option>
                             <option value="moderate">Moderate (2-3 hours/day)</option>
@@ -77,13 +80,27 @@ export default function TimeframePage() {
                     <div className="flex justify-between mt-8">
                         <button
                             onClick={handleBack}
-                            className="px-6 py-3 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-all"
+                            className="px-6 py-3 rounded-lg transition-all"
+                            style={{ backgroundColor: 'white', color: 'black', border: '1px solid rgba(0,0,0,0.1)' }}
+                            onMouseEnter={(e) => {
+                                e.currentTarget.style.backgroundColor = '#f5f5f5';
+                            }}
+                            onMouseLeave={(e) => {
+                                e.currentTarget.style.backgroundColor = 'white';
+                            }}
                         >
                             Back
                         </button>
                         <button
                             onClick={handleNext}
-                            className="px-6 py-3 bg-white/20 text-white rounded-lg hover:bg-white/40 transition-all backdrop-blur-sm border border-white/30"
+                            className="px-6 py-3 rounded-lg transition-all"
+                            style={{ backgroundColor: 'black', color: 'white' }}
+                            onMouseEnter={(e) => {
+                                e.currentTarget.style.backgroundColor = '#333';
+                            }}
+                            onMouseLeave={(e) => {
+                                e.currentTarget.style.backgroundColor = 'black';
+                            }}
                         >
                             Next
                         </button>

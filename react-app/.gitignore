@@ -39,3 +39,6 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# decor guide
+PLANET_DECORATION_GUIDE.md

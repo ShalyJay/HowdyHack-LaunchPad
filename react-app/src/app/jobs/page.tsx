@@ -81,6 +81,7 @@ export default function JobsPage() {
                                             }}
                                             placeholder={`Job ${index + 1} URL ${index === 0 ? '(required)' : '(optional)'}`}
                                             className="w-full p-3 border rounded"
+                                            style={{ backgroundColor: 'white', color: 'var(--text-primary)' }}
                                         />
                                     </div>
                                 );
@@ -91,13 +92,27 @@ export default function JobsPage() {
                     <div className="flex justify-between mt-8">
                         <button
                             onClick={handleBack}
-                            className="px-6 py-3 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-all"
+                            className="px-6 py-3 rounded-lg transition-all"
+                            style={{ backgroundColor: 'white', color: 'black', border: '1px solid rgba(0,0,0,0.1)' }}
+                            onMouseEnter={(e) => {
+                                e.currentTarget.style.backgroundColor = '#f5f5f5';
+                            }}
+                            onMouseLeave={(e) => {
+                                e.currentTarget.style.backgroundColor = 'white';
+                            }}
                         >
                             Back
                         </button>
                         <button
                             onClick={handleNext}
-                            className="px-6 py-3 bg-white/20 text-white rounded-lg hover:bg-white/40 transition-all backdrop-blur-sm border border-white/30"
+                            className="px-6 py-3 rounded-lg transition-all"
+                            style={{ backgroundColor: 'black', color: 'white' }}
+                            onMouseEnter={(e) => {
+                                e.currentTarget.style.backgroundColor = '#333';
+                            }}
+                            onMouseLeave={(e) => {
+                                e.currentTarget.style.backgroundColor = 'black';
+                            }}
                         >
                             Generate Roadmap
                         </button>

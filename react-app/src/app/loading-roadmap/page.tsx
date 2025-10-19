@@ -54,7 +54,7 @@ export default function LoadingRoadmapPage() {
         console.log('loading:', loading);
         console.log('loadingProgress:', loadingProgress);
 
-        const hasModules = modules && (Array.isArray(modules) ? modules.length > 0 : modules.modules?.length > 0);
+        const hasModules = modules && (Array.isArray(modules) ? modules.length > 0 : (modules as any).modules?.length > 0);
         console.log('hasModules:', hasModules);
 
         if (hasModules) {
@@ -390,24 +390,23 @@ export default function LoadingRoadmapPage() {
                             <div style={{
                                 width: '100%',
                                 height: '8px',
-                                backgroundColor: 'rgba(71, 85, 105, 0.3)',
+                                backgroundColor: 'rgba(var(--slate-rgb), 0.3)',
                                 borderRadius: '12px',
                                 overflow: 'hidden',
-                                border: '1px solid rgba(148, 163, 184, 0.2)'
+                                border: '1px solid rgba(var(--text-muted), 0.2)'
                             }}>
                                 <div style={{
                                     width: `${loadingProgress}%`,
                                     height: '100%',
-                                    background: 'linear-gradient(90deg, #ec4899 0%, #9333ea 50%, #3b82f6 100%)',
+                                    background: 'linear-gradient(90deg, var(--pink-main) 0%, var(--purple-main) 50%, var(--blue-main) 100%)',
                                     borderRadius: '12px',
-                                    transition: 'width 0.6s cubic-bezier(0.4, 0, 0.2, 1)',
-                                    boxShadow: '0 0 20px rgba(236, 72, 153, 0.5)'
+                                    transition: 'width 0.6s cubic-bezier(0.4, 0, 0.2, 1)'
                                 }}></div>
                             </div>
                             <p style={{
                                 textAlign: 'center',
                                 fontSize: '14px',
-                                color: '#cbd5e1',
+                                color: 'var(--text-secondary)',
                                 marginTop: '12px',
                                 fontWeight: '500'
                             }}>
@@ -451,23 +450,20 @@ export default function LoadingRoadmapPage() {
                             onClick={handleCreateNew}
                             style={{
                                 padding: '12px 24px',
-                                background: 'linear-gradient(135deg, #ec4899 0%, #9333ea 100%)',
-                                color: '#fff',
+                                background: 'linear-gradient(135deg, var(--pink-main) 0%, var(--purple-main) 100%)',
+                                color: 'var(--white)',
                                 border: 'none',
                                 borderRadius: '10px',
                                 fontSize: '15px',
                                 fontWeight: '600',
                                 cursor: 'pointer',
-                                transition: 'all 0.3s ease',
-                                boxShadow: '0 4px 15px rgba(236, 72, 153, 0.4)'
+                                transition: 'all 0.3s ease'
                             }}
                             onMouseEnter={(e) => {
                                 e.currentTarget.style.transform = 'translateY(-2px)';
-                                e.currentTarget.style.boxShadow = '0 6px 25px rgba(236, 72, 153, 0.6)';
                             }}
                             onMouseLeave={(e) => {
                                 e.currentTarget.style.transform = 'translateY(0)';
-                                e.currentTarget.style.boxShadow = '0 4px 15px rgba(236, 72, 153, 0.4)';
                             }}
                         >
                             Create New Roadmap

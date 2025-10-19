@@ -74,23 +74,20 @@ export default function RoadmapPage() {
                             onClick={handleCreateNew}
                             style={{
                                 padding: '12px 24px',
-                                background: 'linear-gradient(135deg, #ec4899 0%, #9333ea 100%)',
-                                color: '#fff',
+                                background: 'linear-gradient(135deg, var(--pink-main) 0%, var(--purple-main) 100%)',
+                                color: 'var(--white)',
                                 border: 'none',
                                 borderRadius: '10px',
                                 fontSize: '15px',
                                 fontWeight: '600',
                                 cursor: 'pointer',
-                                transition: 'all 0.3s ease',
-                                boxShadow: '0 4px 15px rgba(236, 72, 153, 0.4)'
+                                transition: 'all 0.3s ease'
                             }}
                             onMouseEnter={(e) => {
                                 e.currentTarget.style.transform = 'translateY(-2px)';
-                                e.currentTarget.style.boxShadow = '0 6px 25px rgba(236, 72, 153, 0.6)';
                             }}
                             onMouseLeave={(e) => {
                                 e.currentTarget.style.transform = 'translateY(0)';
-                                e.currentTarget.style.boxShadow = '0 4px 15px rgba(236, 72, 153, 0.4)';
                             }}
                         >
                             Create New Roadmap
