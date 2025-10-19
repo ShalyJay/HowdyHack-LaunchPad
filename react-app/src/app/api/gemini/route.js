@@ -2,18 +2,24 @@ import { GoogleGenerativeAI } from "@google/generative-ai";
 
 export async function POST(req) {
   try {
-    const { prompt } = await req.json();
+    const { prompt, fileData } = await req.json(); // fileData = base64 string
     const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
     const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
 
-    const result = await model.generateContent(prompt);
-    const text = result.response.text();
+    const result = await model.generateContent([
+      prompt,
+      {
+        inlineData: {
+          mimeType: "application/pdf",
+          data: fileData,
+        },
+      },
+    ]);
 
+    const text = result.response.text();
     return new Response(JSON.stringify({ text }), { status: 200 });
-  } 
-  
-  catch (error) {
-    console.error("Gemini API Error:", error);
-    return new Response(JSON.stringify({ error: error.message }), { status: 500 });
+  } catch (err) {
+    console.error(err);
+    return new Response(JSON.stringify({ error: err.message }), { status: 500 });
   }
 }
