@@ -1,9 +1,9 @@
 export async function POST(req) {
   try {
-    const { prompt, fileData, skills, jobReqs } = await req.json();
+    const { prompt, fileData, skills, jobUrls } = await req.json();
 
     console.log("=== API ROUTE CALLED ===");
-    console.log("jobReqs:", jobReqs);
+    console.log("jobUrls:", jobUrls);
     console.log("skills:", skills);
     console.log("========================");
 
@@ -12,69 +12,78 @@ export async function POST(req) {
       throw new Error("GEMINI_API_KEY is not set in environment variables");
     }
 
-    // Handle job requirements (URLs or text)
-    let jobRequirements = "";
-    if (jobReqs && jobReqs.trim()) {
-      // Check if it's a URL
-      if (jobReqs.trim().startsWith('http')) {
-        try {
-          console.log("=== SCRAPING URL WITH JINA AI ===");
-          console.log("Original URL:", jobReqs.trim());
+    // Helper function to scrape a single URL
+    async function scrapeOneUrl(url, index) {
+      try {
+        console.log(`=== SCRAPING JOB ${index + 1} ===`);
+        console.log("URL:", url);
 
-          // Use Jina AI Reader to scrape the webpage (handles JavaScript)
-          const jinaUrl = `https://r.jina.ai/${jobReqs.trim()}`;
-          const jinaResponse = await fetch(jinaUrl, {
-            headers: {
-              'Accept': 'text/plain',
-            }
-          });
+        const jinaUrl = `https://r.jina.ai/${url}`;
+        const jinaResponse = await fetch(jinaUrl, {
+          headers: { 'Accept': 'text/plain' }
+        });
 
-          if (!jinaResponse.ok) {
-            const statusCode = jinaResponse.status;
-            if (statusCode === 524) {
-              throw new Error('URL took too long to load (timeout) - please copy/paste the requirements text instead');
-            } else if (statusCode === 403 || statusCode === 401) {
-              throw new Error('URL is protected and cannot be scraped - please copy/paste the requirements text instead');
-            } else {
-              throw new Error(`Could not scrape URL (status ${statusCode}) - please copy/paste the requirements text instead`);
-            }
-          }
-
-          const scrapedContent = await jinaResponse.text();
-
-          console.log("=== SCRAPED CONTENT (first 1000 chars) ===");
-          console.log(scrapedContent.substring(0, 1000));
-          console.log("==========================================");
-
-          // Check if we hit a bot protection page (Cloudflare, etc.)
-          if (scrapedContent.includes('Cloudflare') ||
-              scrapedContent.includes('Additional Verification Required') ||
-              scrapedContent.includes('Ray ID') ||
-              scrapedContent.includes('Waiting for') ||
-              scrapedContent.length < 500) {
-            console.log("⚠️  BOT PROTECTION DETECTED - Content not accessible");
-            throw new Error('Website has bot protection - please copy/paste the job requirements text instead');
-          }
-
-          console.log("✅ Successfully scraped content from URL");
-          jobRequirements = `\n\nJOB POSTING CONTENT (scraped from ${jobReqs.trim()}):\n${scrapedContent}`;
-        } catch (err) {
-          console.error("Error scraping URL with Jina:", err);
-
-          // Return a clear error message to the user instead of falling back to Gemini
-          // (because Gemini will just hallucinate if it can't actually read the URL)
-          return new Response(
-            JSON.stringify({
-              error: `❌ URL Scraping Failed: ${err.message}\n\nPlease copy and paste the job requirements text directly into the form instead.`
-            }),
-            { status: 400 }
-          );
+        if (!jinaResponse.ok) {
+          throw new Error(`HTTP ${jinaResponse.status}`);
         }
-      } else {
-        // User pasted text directly
-        jobRequirements = `\n\nJOB REQUIREMENTS (provided by user):\n${jobReqs}`;
+
+        const content = await jinaResponse.text();
+
+        // Check for bot protection
+        if (content.includes('Cloudflare') ||
+            content.includes('Additional Verification Required') ||
+            content.includes('Ray ID') ||
+            content.includes('Waiting for') ||
+            content.length < 500) {
+          throw new Error('Bot protection detected');
+        }
+
+        console.log(`✅ Job ${index + 1} scraped successfully`);
+        return { success: true, url, content, jobNumber: index + 1 };
+      } catch (err) {
+        console.error(`❌ Job ${index + 1} failed:`, err.message);
+        return { success: false, url, error: err.message, jobNumber: index + 1 };
       }
     }
+
+    // Scrape all URLs in parallel
+    let jobRequirements = "";
+    if (jobUrls && jobUrls.length > 0) {
+      console.log(`=== SCRAPING ${jobUrls.length} JOB URLS ===`);
+
+      // Scrape all URLs at once
+      const results = await Promise.all(
+        jobUrls.map((url, index) => scrapeOneUrl(url, index))
+      );
+
+      // Separate successful vs failed scrapes
+      const successful = results.filter(r => r.success);
+      const failed = results.filter(r => !r.success);
+
+      // If ALL failed, return error
+      if (successful.length === 0) {
+        return new Response(
+          JSON.stringify({
+            error: `❌ All job URLs failed to scrape:\n${failed.map(f => `Job ${f.jobNumber}: ${f.error}`).join('\n')}`
+          }),
+          { status: 400 }
+        );
+      }
+
+      // Build the combined job postings content
+      jobRequirements = `\n\n=== ${successful.length} JOB POSTING(S) ===\n\n`;
+      successful.forEach(result => {
+        jobRequirements += `--- JOB ${result.jobNumber}: ${result.url} ---\n${result.content}\n\n`;
+      });
+
+      if (failed.length > 0) {
+        console.log(`⚠️  ${failed.length} job(s) failed, but continuing with ${successful.length} successful scrape(s)`);
+      }
+    } else {
+      // No URLs provided (shouldn't happen based on frontend validation)
+      jobRequirements = "";
+    }
+
 
     // Build the parts array dynamically based on what's provided
     const parts = [];

@@ -10,7 +10,7 @@ export default function Form() {
     const [resume, setResume] = useState<File | null>(null);        //resume input
     const [fileData, setFileData] = useState<string | null>(null);  //base64 resume data for API
     const [skills, setSkills] = useState("");                       //skills text input
-    const [jobReqs, setJobReqs] = useState("");                     //job qualifications input (paste for now, links later)
+    const [jobUrls, setJobUrls] = useState<string[]>(["", "", "", "", ""]); //up to 5 job URLs
     const [response, setResponse] = useState("");                   //Gemini API response
     const [modules, setModules] = useState<any[]>([]);              //Parsed roadmap
     const [loading, setLoading] = useState(false);                  //loading state while API
@@ -51,11 +51,17 @@ export default function Form() {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         // Handle form submission here
-        console.log({resume, skills, jobReqs});
+        console.log({resume, skills, jobUrls});
 
-        // require resume, skills, or both
+        // require resume/skills AND at least one job URL
         if (!fileData && !skills.trim()) {
             alert("Please upload a resume or enter skills (or both)!");
+            return;
+        }
+
+        const filledUrls = jobUrls.filter(url => url.trim() !== "");
+        if (filledUrls.length === 0) {
+            alert("Please enter at least one job posting URL!");
             return;
         }
 
@@ -130,10 +136,8 @@ export default function Form() {
             - Create 3-6 modules in learning order
             - Provide 3+ FREE resources per module`;
 
-            // Add job requirements to prompt if provided
-            if (jobReqs && jobReqs.trim()) {
-                prompt += `\n\nTARGET JOB REQUIREMENTS:\n${jobReqs}\n\nAnalyze these job postings to understand what skills/qualifications are REQUIRED.`;
-            }
+            // Job URLs will be handled by the API - just mention them in the prompt
+            prompt += `\n\nYou will receive scraped content from ${filledUrls.length} job posting(s). Analyze ALL of them to find common patterns and important technologies.`;
 
             // CLARIFICATION FEATURE - Commented out
             // Uncomment this section if you re-enable clarifications
@@ -165,7 +169,7 @@ export default function Form() {
                     prompt: prompt,
                     fileData: fileData,
                     skills: skills,
-                    jobReqs: jobReqs
+                    jobUrls: filledUrls  // Send array of URLs instead of single jobReqs
                 }),
             });
 
@@ -284,22 +288,30 @@ export default function Form() {
                     </div>
 
                     <div>
-                        <label className="block mb-2">Job Requirements</label>
-                        <p className="text-sm text-gray-600 mb-2">
-                            <strong>Option 1:</strong> ✨ Paste a job posting URL - we'll automatically scrape it!
+                        <label className="block mb-2">Job Posting URLs (1-5 jobs)</label>
+                        <p className="text-sm text-gray-600 mb-3">
+                            Enter 1-5 job URLs you're interested in. We'll analyze them and create a roadmap with the most important skills across all jobs.
                             <br />
                             <span className="text-xs text-gray-500">
-                                Note: Some sites (Indeed, LinkedIn) have bot protection. For those, use Option 2.
+                                ⚠️ Note: Some sites (Indeed, LinkedIn) have bot protection and may not work.
                             </span>
-                            <br />
-                            <strong>Option 2:</strong> Copy/paste the "Requirements" or "Qualifications" section text
                         </p>
-                        <textarea
-                            value={jobReqs}
-                            onChange={(e) => setJobReqs(e.target.value)}
-                            placeholder="Paste URL OR job requirements text:&#10;&#10;URL: https://company.com/jobs/software-engineer&#10;&#10;Or paste text from job posting:&#10;• 3+ years with React, TypeScript&#10;• Experience with AWS, Docker&#10;• Strong Python skills"
-                            className="w-full p-3 border rounded h-32"
-                        />
+                        <div className="space-y-2">
+                            {jobUrls.map((url, index) => (
+                                <input
+                                    key={index}
+                                    type="url"
+                                    value={url}
+                                    onChange={(e) => {
+                                        const newUrls = [...jobUrls];
+                                        newUrls[index] = e.target.value;
+                                        setJobUrls(newUrls);
+                                    }}
+                                    placeholder={`Job ${index + 1} URL ${index === 0 ? '(required)' : '(optional)'}`}
+                                    className="w-full p-3 border rounded"
+                                />
+                            ))}
+                        </div>
                     </div>
 
                     {/* CLARIFICATION FEATURE - Commented out */}
