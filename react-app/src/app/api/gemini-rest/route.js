@@ -2,69 +2,21 @@ export async function POST(req) {
   try {
     const { prompt, fileData, skills, jobReqs } = await req.json();
 
+    console.log("=== API ROUTE CALLED ===");
+    console.log("jobReqs:", jobReqs);
+    console.log("skills:", skills);
+    console.log("========================");
+
     const apiKey = process.env.GEMINI_API_KEY;
     if (!apiKey) {
       throw new Error("GEMINI_API_KEY is not set in environment variables");
     }
 
-    // Fetch and extract technical requirements from job URLs
+    // Handle job requirements (URLs or text)
     let jobRequirements = "";
     if (jobReqs && jobReqs.trim()) {
-      const urls = jobReqs.split('\n').filter(line => line.trim().startsWith('http'));
-
-      if (urls.length > 0) {
-        try {
-          // Fetch content from URLs
-          const fetchPromises = urls.map(async (url) => {
-            try {
-              const response = await fetch(url.trim());
-              const html = await response.text();
-
-              // Use Gemini to extract just the technical requirements
-              const extractionPrompt = `Extract ONLY the technical skills, qualifications, and requirements from this job posting.
-              Focus on:
-              - Minimum qualifications (technical skills required)
-              - Preferred qualifications (nice to have)
-              - Programming languages
-              - Frameworks/tools
-              - Technical competencies
-
-              Ignore: company description, benefits, culture, soft skills.
-
-              Return as a concise bullet list.
-
-              Job Posting HTML:
-              ${html.substring(0, 10000)}`;
-
-              const extractResponse = await fetch(
-                `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`,
-                {
-                  method: "POST",
-                  headers: { "Content-Type": "application/json" },
-                  body: JSON.stringify({
-                    contents: [{ parts: [{ text: extractionPrompt }] }]
-                  })
-                }
-              );
-
-              const extractData = await extractResponse.json();
-              const requirements = extractData.candidates?.[0]?.content?.parts?.[0]?.text || "Could not extract requirements";
-
-              return `\n\nTechnical Requirements from ${url}:\n${requirements}`;
-
-            } catch (err) {
-              console.error(`Error processing ${url}:`, err);
-              return `\n\nCould not fetch ${url}`;
-            }
-          });
-
-          const results = await Promise.all(fetchPromises);
-          jobRequirements = results.join('\n');
-
-        } catch (err) {
-          console.error("Error fetching job URLs:", err);
-        }
-      }
+      // Just pass the job reqs directly - let Gemini handle URL fetching if needed
+      jobRequirements = `\n\nJOB POSTING(S):\n${jobReqs}\n\nIf URLs are provided, visit them and extract all technical requirements.`;
     }
 
     // Build the parts array dynamically based on what's provided
@@ -83,6 +35,14 @@ export async function POST(req) {
       fullPrompt += jobRequirements;
     }
 
+    console.log("=== EXTRACTED JOB REQUIREMENTS ===");
+    console.log(jobRequirements);
+    console.log("=================================");
+
+    console.log("=== FULL PROMPT SENT TO GEMINI ===");
+    console.log(fullPrompt);
+    console.log("==================================");
+
     parts.push({ text: fullPrompt });
 
     // Add PDF if provided
@@ -96,7 +56,7 @@ export async function POST(req) {
     }
 
     const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro:generateContent?key=${apiKey}`,
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`,
       {
         method: "POST",
         headers: {

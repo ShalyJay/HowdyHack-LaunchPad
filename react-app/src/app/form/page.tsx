@@ -54,51 +54,70 @@ export default function Form() {
         setResponse("");
 
         try {
-            // Base prompt for Gemini
+            // Base prompt for Gemini - JOB-FOCUSED approach
             let prompt = `You are a career advisor creating a PERSONALIZED learning roadmap.
 
-            CURRENT SKILLS/EXPERIENCE:
-            ${skills ? `Skills: ${skills}` : ''}
-            ${fileData ? 'Resume: (PDF provided)' : ''}
+            STEP 1: READ THE JOB POSTING
+            If a URL is provided, VISIT IT and read the entire page content.
 
-            TASK:
-            1. Analyze the user's CURRENT skills and experience (from resume/skills 
-            above)
-            2. If job URLs are provided below, FETCH and READ the job postings to 
-            understand requirements
-            3. Compare current skills to job requirements
-            4. Identify SKILL GAPS (what's missing to qualify for these jobs)
-            5. Create a step-by-step learning roadmap to bridge those gaps
+            STEP 2: FIND AND COPY THE REQUIREMENTS SECTION
+            Look for sections titled "Qualifications", "Requirements", "Minimum Qualifications", "Technical Requirements", or similar.
+            Copy the EXACT TEXT from that section word-for-word.
+            Put this in "jobPostingPreview" field.
+
+            STEP 3: EXTRACT TECHNICAL REQUIREMENTS
+            From the text you copied, identify ONLY the specific technologies that are explicitly named:
+            - Programming languages (Java, Python, JavaScript, etc.)
+            - Frameworks and libraries (React, Spring Boot, Django, etc.)
+            - Databases (PostgreSQL, MongoDB, etc.)
+            - Cloud platforms (AWS, Azure, GCP, etc.)
+            - Tools (Docker, Git, etc.)
+
+            CRITICAL:
+            - If the section says "familiarity with programming" without naming languages → jobRequirements: []
+            - If the section says "experience with Java, Ruby, Go" → jobRequirements: ["Java", "Ruby", "Go"]
+            - ONLY include technologies that are EXPLICITLY NAMED in the text
+
+            List these in the "jobRequirements" array.
+
+            STEP 2: IDENTIFY USER'S CURRENT SKILLS
+            USER'S CURRENT SKILLS/EXPERIENCE:
+            ${skills ? `Skills: ${skills}` : 'No skills provided'}
+            ${fileData ? 'Resume: (PDF provided with work history)' : 'No resume provided'}
+
+            STEP 3: FIND THE GAPS
+            Compare job requirements to user skills. What specific technologies does the user NOT have?
+
+            STEP 4: CREATE ROADMAP FOR GAPS ONLY
+            Create modules ONLY for the missing technical skills.
 
             Return your response as valid JSON in this exact format:
             {
-                "currentSkills": ["skill1", "skill2"],
-                "missingSkills": ["skill3", "skill4"],
-                "modules": [
+            "jobPostingPreview": "EXACT TEXT copied from the Requirements/Qualifications section of the job posting",
+            "jobRequirements": ["Java", "Ruby", "JavaScript"],
+            "currentSkills": ["JavaScript", "React"],
+            "missingSkills": ["Java", "Ruby"],
+            "modules": [
                 {
-                    "title": "Module name (e.g., 'Master React Fundamentals')",
-                    "duration": "estimated time (e.g., '2-3 weeks')",
-                    "skills": ["specific skills learned in this module"],
-                    "description": "What you'll learn and why it's needed for the target jobs",
-                    "resources": ["Free resource 1", "Free resource 2", "Free resource 3"]
+                "title": "Learn Java Fundamentals",
+                "duration": "3-4 weeks",
+                "skills": ["Java"],
+                "description": "Master Java basics needed for Spring Boot development",
+                "resources": ["Java Tutorial on Oracle Docs", "Java Course on Coursera", "Java Practice on HackerRank"]
                 }
-                ]
+            ]
             }
 
-            IMPORTANT:
-            - Create 4-6 modules in LOGICAL ORDER (foundation → advanced)
-            - Each module should build on the previous one
-            - Focus ONLY on skills needed to qualify for the target job(s)
-            - Provide at least 3 FREE learning resources per module (courses, docs, 
-            tutorials)
-            - Make it actionable and realistic for someone currently at their skill 
-            level`;
-        
+            CRITICAL REQUIREMENTS:
+            - "jobRequirements" must list SPECIFIC TECHNOLOGIES from the job posting, not generic skills
+            - ONLY create modules for technologies in "missingSkills"
+            - Each module focuses on ONE specific technology
+            - Create 3-6 modules in learning order
+            - Provide 3+ FREE resources per module`;
 
             // Add job requirements to prompt if provided
             if (jobReqs && jobReqs.trim()) {
-                prompt += `\n\nTARGET JOB(S):\n${jobReqs}\n\nFetch and analyze these 
-                    job postings to understand the exact requirements.`;
+                prompt += `\n\nTARGET JOB REQUIREMENTS:\n${jobReqs}\n\nAnalyze these job postings to understand what skills/qualifications are REQUIRED.`;
             }
 
             const res = await fetch("/api/gemini-rest", {
@@ -107,7 +126,8 @@ export default function Form() {
                 body: JSON.stringify({
                     prompt: prompt,
                     fileData: fileData,
-                    skills: skills
+                    skills: skills,
+                    jobReqs: jobReqs
                 }),
             });
 
@@ -131,7 +151,15 @@ export default function Form() {
 
                     // TEST: throw new Error("Testing fallback"); // Force fallback works:)
                     const parsed = JSON.parse(jsonText);
-                    setModules(parsed.modules || []);
+
+                    console.log("=== PARSED RESPONSE ===");
+                    console.log("jobPostingPreview:", parsed.jobPostingPreview);
+                    console.log("jobRequirements:", parsed.jobRequirements);
+                    console.log("Full parsed:", parsed);
+                    console.log("=====================");
+
+                    // Set the entire parsed object (includes jobPostingPreview, jobRequirements, etc.)
+                    setModules(parsed);
                     setResponse(""); // Clear text response since we have modules
                 } catch (parseError) {
                     // If JSON parsing fails, show as text
@@ -200,11 +228,16 @@ export default function Form() {
                     </div>
 
                     <div>
-                        <label className="block mb-2">Job Links (one per line)</label>
+                        <label className="block mb-2">Job Requirements</label>
+                        <p className="text-sm text-gray-600 mb-2">
+                            <strong>Option 1:</strong> Paste a job posting URL (AI will try to read it - may not always work)
+                            <br />
+                            <strong>Option 2:</strong> Copy/paste the "Requirements" or "Qualifications" section text (more reliable)
+                        </p>
                         <textarea
                             value={jobReqs}
                             onChange={(e) => setJobReqs(e.target.value)}
-                            placeholder="https://example.com/job1"
+                            placeholder="Paste URL OR job requirements text:&#10;&#10;URL example: https://company.com/jobs/software-engineer&#10;&#10;Text example:&#10;• 3+ years with React, TypeScript&#10;• Experience with AWS, Docker&#10;• Strong Python skills"
                             className="w-full p-3 border rounded h-32"
                         />
                     </div>
