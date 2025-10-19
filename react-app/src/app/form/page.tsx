@@ -158,7 +158,18 @@ export default function Form() {
                             </button>
                     </div>
                 </form>
-                            
+                
+                {/* Response Display */}
+                {response && (
+                    <div className="mt-8 p-4 border rounded">
+                        <h2 className="text-xl font-bold mb-4">Your Learning
+                            Roadmap:
+                        </h2>
+                        <div className="whitespace-pre-wrap">
+                            {response}
+                        </div>
+                    </div>
+                )}
 
             </div>
         </div>
