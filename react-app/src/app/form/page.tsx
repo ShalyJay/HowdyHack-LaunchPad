@@ -6,9 +6,12 @@ import { useState } from 'react';
 
 export default function Form() {
     // form input states
-    const [resume, setResume] = useState<File | null>(null);    //resume input
-    const [skills, setSkills] = useState("");                   //skills text input
-    const [jobReqs, setJobReqs] = useState("");                 //job qualifications input (paste for now, links later)
+    const [resume, setResume] = useState<File | null>(null);        //resume input
+    const [fileData, setFileData] = useState<string | null>(null);  //base64 resume data for API
+    const [skills, setSkills] = useState("");                       //skills text input
+    const [jobReqs, setJobReqs] = useState("");                     //job qualifications input (paste for now, links later)
+    const [response, setResponse] = useState("");                   //Gemini API response
+    const [loading, setLoading] = useState(false);                  //loading state while API
 
     // resume upload
     const handleResumeUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
