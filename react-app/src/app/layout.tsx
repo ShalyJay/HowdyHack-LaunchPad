@@ -1,8 +1,15 @@
 import type { Metadata } from "next";
-import { Archivo } from "next/font/google";
+import { Orbitron, Archivo } from "next/font/google";
 import "./globals.css";
 import { RoadmapProvider } from "./context/RoadmapContext";
 import ProgressNavbar from "./components/ProgressNavbar";
+import ConditionalPadding from "./components/ConditionalPadding";
+
+const orbitron = Orbitron({
+  variable: "--font-orbitron",
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700", "800", "900"],
+});
 
 const archivo = Archivo({
   variable: "--font-archivo",
@@ -23,11 +30,13 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${archivo.variable} antialiased`}
+        className={`${orbitron.variable} ${archivo.variable} antialiased`}
       >
         <RoadmapProvider>
-          <ProgressNavbar />
-          {children}
+          <ConditionalPadding>
+            <ProgressNavbar />
+            {children}
+          </ConditionalPadding>
         </RoadmapProvider>
       </body>
     </html>

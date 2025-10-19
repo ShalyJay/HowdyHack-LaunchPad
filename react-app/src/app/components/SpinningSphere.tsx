@@ -1,6 +1,6 @@
 'use client';
 
-import { useRef } from 'react';
+import React, { useRef } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
 import { Text, OrbitControls } from '@react-three/drei';
 import * as THREE from 'three';
@@ -9,6 +9,18 @@ function ShootingStar() {
   const groupRef = useRef<THREE.Group>(null);
   const trailRef = useRef<THREE.Line>(null);
   const prevPositions = useRef<THREE.Vector3[]>([]);
+  const [trailLine, setTrailLine] = React.useState<THREE.Line | null>(null);
+
+  React.useEffect(() => {
+    const geometry = new THREE.BufferGeometry();
+    const material = new THREE.LineBasicMaterial({ color: "#4682b4", transparent: true, opacity: 0.4 });
+    const line = new THREE.Line(geometry, material);
+    setTrailLine(line);
+    return () => {
+      geometry.dispose();
+      material.dispose();
+    };
+  }, []);
 
   useFrame((state) => {
     if (groupRef.current) {
@@ -46,10 +58,10 @@ function ShootingStar() {
       }
 
       // Update trail geometry
-      if (trailRef.current && prevPositions.current.length > 1) {
+      if (trailLine && prevPositions.current.length > 1) {
         const trailGeometry = new THREE.BufferGeometry().setFromPoints(prevPositions.current);
-        trailRef.current.geometry.dispose();
-        trailRef.current.geometry = trailGeometry;
+        trailLine.geometry.dispose();
+        trailLine.geometry = trailGeometry;
       }
     }
   });
@@ -82,10 +94,7 @@ function ShootingStar() {
         <sphereGeometry args={[0.04, 8, 8]} />
         <meshBasicMaterial color="#4682b4" transparent />
       </mesh>
-      <line ref={trailRef}>
-        <bufferGeometry />
-        <lineBasicMaterial color="#4682b4" transparent opacity={0.4} />
-      </line>
+      {trailLine && <primitive object={trailLine} />}
     </group>
   );
 }
@@ -94,6 +103,18 @@ function ShootingStar2() {
   const groupRef = useRef<THREE.Group>(null);
   const trailRef = useRef<THREE.Line>(null);
   const prevPositions = useRef<THREE.Vector3[]>([]);
+  const [trailLine, setTrailLine] = React.useState<THREE.Line | null>(null);
+
+  React.useEffect(() => {
+    const geometry = new THREE.BufferGeometry();
+    const material = new THREE.LineBasicMaterial({ color: "#4682b4", transparent: true, opacity: 0.4 });
+    const line = new THREE.Line(geometry, material);
+    setTrailLine(line);
+    return () => {
+      geometry.dispose();
+      material.dispose();
+    };
+  }, []);
 
   useFrame((state) => {
     if (groupRef.current) {
@@ -131,10 +152,10 @@ function ShootingStar2() {
       }
 
       // Update trail geometry
-      if (trailRef.current && prevPositions.current.length > 1) {
+      if (trailLine && prevPositions.current.length > 1) {
         const trailGeometry = new THREE.BufferGeometry().setFromPoints(prevPositions.current);
-        trailRef.current.geometry.dispose();
-        trailRef.current.geometry = trailGeometry;
+        trailLine.geometry.dispose();
+        trailLine.geometry = trailGeometry;
       }
     }
   });
@@ -165,10 +186,7 @@ function ShootingStar2() {
         <sphereGeometry args={[0.04, 8, 8]} />
         <meshBasicMaterial color="#4682b4" transparent />
       </mesh>
-      <line ref={trailRef}>
-        <bufferGeometry />
-        <lineBasicMaterial color="#4682b4" transparent opacity={0.4} />
-      </line>
+      {trailLine && <primitive object={trailLine} />}
     </group>
   );
 }
@@ -265,38 +283,36 @@ function Sphere() {
 
 export default function SpinningSphere() {
   return (
-    <div style={{ width: '600px', maxWidth: '100vw', height: '500px', position: 'relative' }}>
-      <Canvas camera={{ position: [0, 0, 10], fov: 75 }}>
-        {/* Lighting */}
-        <ambientLight intensity={0.5} />
-        <directionalLight position={[-5, 5, 3]} intensity={1.5} />
-        <pointLight position={[-5, 5, 3]} intensity={1} />
-
-        {/* 3D Objects */}
-        <Sphere />
-        <OrbitingLine />
-        {/* <ShootingStar /> */}
-        {/* <ShootingStar2 /> */}
-
-        {/* Controls - allows user to rotate view with mouse */}
-        <OrbitControls enableZoom={false} />
-      </Canvas>
-
-      {/* HTML Text Overlay */}
+    <div style={{ width: '600px', maxWidth: '100vw', position: 'relative', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+      {/* HTML Text Above */}
       <div style={{
-        position: 'absolute',
-        top: '50%',
-        left: '50%',
-        transform: 'translate(-50%, -50%)',
-        color: '#ffffff',
-        fontSize: '2rem',
+        color: '#2a2521',
+        fontSize: '3rem',
         fontWeight: '600',
-        pointerEvents: 'none',
-        zIndex: 10,
         whiteSpace: 'nowrap',
-        textTransform: 'uppercase'
+        //textTransform: 'uppercase',
+        marginBottom: '-20px',
+        marginTop: '-40px'
       }}>
-        Job Roadmap
+        Launch Pad
+      </div>
+
+      <div style={{ width: '600px', maxWidth: '100vw', height: '500px', position: 'relative' }}>
+        <Canvas camera={{ position: [0, 0, 10], fov: 75 }}>
+          {/* Lighting */}
+          <ambientLight intensity={0.5} />
+          <directionalLight position={[-5, 5, 3]} intensity={1.5} />
+          <pointLight position={[-5, 5, 3]} intensity={1} />
+
+          {/* 3D Objects */}
+          <Sphere />
+          <OrbitingLine />
+          {/* <ShootingStar /> */}
+          {/* <ShootingStar2 /> */}
+
+          {/* Controls - allows user to rotate view with mouse */}
+          <OrbitControls enableZoom={false} />
+        </Canvas>
       </div>
     </div>
   );

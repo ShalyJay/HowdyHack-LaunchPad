@@ -45,6 +45,11 @@ export default function ProgressNavbar() {
         return null;
     }
 
+    // Hide navbar on home page
+    if (pathname === '/') {
+        return null;
+    }
+
     // Don't show navbar on other pages
     if (currentStepIndex === -1) {
         return null;
@@ -59,7 +64,8 @@ export default function ProgressNavbar() {
             background: 'var(--bg-secondary)',
             padding: '20px 0',
             zIndex: 1000,
-            borderBottom: '1px solid rgba(var(--text-muted), 0.2)'
+            borderBottom: '1px solid rgba(var(--text-muted), 0.2)',
+            animation: 'slideDown 0.5s ease-out'
         }}>
             <div style={{
                 maxWidth: '750px',
