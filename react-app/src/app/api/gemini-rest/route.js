@@ -1,10 +1,21 @@
 export async function POST(req) {
   try {
-    const { prompt, fileData, skills } = await req.json();
+    const { prompt, fileData, skills, jobReqs } = await req.json();
 
     const apiKey = process.env.GEMINI_API_KEY;
     if (!apiKey) {
       throw new Error("GEMINI_API_KEY is not set in environment variables");
+    }
+
+    // Fetch and extract technical requirements from job URLs
+    let jobRequirements = "";
+    if (jobReqs && jobReqs.trim()) {
+      const urls = jobReqs.split('\n').filter(line =>
+    line.trim().startsWith('http'));
+
+      if (urls.length > 0) {
+        // todo: fetching logic
+      }
     }
 
     // Build the parts array dynamically based on what's provided
