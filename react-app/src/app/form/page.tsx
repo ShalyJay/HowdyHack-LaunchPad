@@ -40,7 +40,14 @@ export default function Form() {
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         // Handle form submission here
-        console.log({ resume, skills, jobReqs});
+        console.log({resume, skills, jobReqs});
+
+        // require resume, skills, or both
+        if (!fileData && !skills.trim()) {
+            alert("Please upload a resume or enter skills (or both)!");
+            return;
+        }
+
     };
 
     return (
