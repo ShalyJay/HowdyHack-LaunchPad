@@ -37,7 +37,7 @@ export default function Form() {
     };
 
     // entire form submission
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         // Handle form submission here
         console.log({resume, skills, jobReqs});
@@ -46,6 +46,38 @@ export default function Form() {
         if (!fileData && !skills.trim()) {
             alert("Please upload a resume or enter skills (or both)!");
             return;
+        }
+
+        setLoading(true);
+        setResponse("");
+
+        try {
+            // Base prompt for Gemini
+            let prompt = `Analyze the resume and skills provided. Create a learning 
+            roadmap to help achieve the job requirements. List main skills and experience, 
+            identify gaps, and suggest a step-by-step learning path.`;
+        
+
+            // Add job requirements to prompt if provided
+            if (jobReqs && jobReqs.trim()) {
+                prompt += `\n\nJob Requirements:\n${jobReqs}`;
+            }
+
+            const res = await fetch("/api/gemini-rest", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    prompt: prompt,
+                    fileData: fileData,
+                    skills: skills
+                }),
+            });
+
+            const data = await res.json();
+            setResponse(data.text || data.error || "No response");
+        } catch(error){
+            console.error(error);
+            setResponse("Error connecting to Gemini API.");
         }
 
     };
