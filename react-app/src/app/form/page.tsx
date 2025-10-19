@@ -55,28 +55,50 @@ export default function Form() {
 
         try {
             // Base prompt for Gemini
-            let prompt = `Analyze the resume and skills provided. Create a learning roadmap 
-            to help achieve the job requirements.
+            let prompt = `You are a career advisor creating a PERSONALIZED learning roadmap.
+
+            CURRENT SKILLS/EXPERIENCE:
+            ${skills ? `Skills: ${skills}` : ''}
+            ${fileData ? 'Resume: (PDF provided)' : ''}
+
+            TASK:
+            1. Analyze the user's CURRENT skills and experience (from resume/skills 
+            above)
+            2. If job URLs are provided below, FETCH and READ the job postings to 
+            understand requirements
+            3. Compare current skills to job requirements
+            4. Identify SKILL GAPS (what's missing to qualify for these jobs)
+            5. Create a step-by-step learning roadmap to bridge those gaps
 
             Return your response as valid JSON in this exact format:
             {
+                "currentSkills": ["skill1", "skill2"],
+                "missingSkills": ["skill3", "skill4"],
                 "modules": [
                 {
-                    "title": "Module name",
-                    "duration": "estimated time (e.g., 2 weeks)",
-                    "skills": ["skill1", "skill2"],
-                    "description": "What you'll learn in this module",
-                    "resources": ["resource1", "resource2"]
+                    "title": "Module name (e.g., 'Master React Fundamentals')",
+                    "duration": "estimated time (e.g., '2-3 weeks')",
+                    "skills": ["specific skills learned in this module"],
+                    "description": "What you'll learn and why it's needed for the target jobs",
+                    "resources": ["Free resource 1", "Free resource 2", "Free resource 3"]
                 }
                 ]
             }
 
-            Identify skill gaps and create 4-6 learning modules in a logical progression order.`;
+            IMPORTANT:
+            - Create 4-6 modules in LOGICAL ORDER (foundation → advanced)
+            - Each module should build on the previous one
+            - Focus ONLY on skills needed to qualify for the target job(s)
+            - Provide at least 3 FREE learning resources per module (courses, docs, 
+            tutorials)
+            - Make it actionable and realistic for someone currently at their skill 
+            level`;
         
 
             // Add job requirements to prompt if provided
             if (jobReqs && jobReqs.trim()) {
-                prompt += `\n\nJob Requirements:\n${jobReqs}`;
+                prompt += `\n\nTARGET JOB(S):\n${jobReqs}\n\nFetch and analyze these 
+                    job postings to understand the exact requirements.`;
             }
 
             const res = await fetch("/api/gemini-rest", {
@@ -107,6 +129,7 @@ export default function Form() {
                         jsonText = jsonText.split('```')[1].split('```')[0].trim();
                     }
 
+                    // TEST: throw new Error("Testing fallback"); // Force fallback works:)
                     const parsed = JSON.parse(jsonText);
                     setModules(parsed.modules || []);
                     setResponse(""); // Clear text response since we have modules
@@ -204,7 +227,10 @@ export default function Form() {
                     </div>
                 </form>
                 
-                {/* Response Display */}
+                {/* Response Timeline */}
+                <RoadmapTimeline modules={modules} />
+
+                {/* fallback: show text response if json parsing failed */}
                 {response && (
                     <div className="mt-8 p-4 border rounded">
                         <h2 className="text-xl font-bold mb-4">Your Learning
