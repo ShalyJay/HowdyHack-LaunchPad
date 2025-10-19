@@ -26,15 +26,15 @@ export default function LoadingRoadmapPage() {
         generateRoadmap();
     }, []);
 
-    // Navigate to roadmap when modules are set
+    // Navigate to roadmap when complete (success or error)
     useEffect(() => {
-        if (!loading && loadingProgress === 100) {
-            // Small delay to show 100% completion
+        if (!loading) {
+            // Small delay before navigating
             setTimeout(() => {
                 router.push('/roadmap');
             }, 500);
         }
-    }, [loading, loadingProgress, router]);
+    }, [loading, router]);
 
     const generateRoadmap = async () => {
         const filledUrls = jobUrls.filter(url => url.trim() !== "");
@@ -51,20 +51,23 @@ export default function LoadingRoadmapPage() {
                     const randomFactor = 0.5 + Math.random() * 0.5; // Random between 0.5 and 1.0
 
                     // Different speeds for different phases
-                    // 0-10: fast, 10-70: very slow (60% of time), 70-90: medium, 90-100: slow
+                    // 0-10: fast, 10-40: slow, 40-70: FAST (interesting!), 70-90: medium, 90-100: slow
                     let slowdownFactor;
                     if (prev < 10) {
                         // Starting phase: fast
                         slowdownFactor = 0.30;
+                    } else if (prev < 40) {
+                        // Early scraping: slow
+                        slowdownFactor = 0.03;
                     } else if (prev < 70) {
-                        // Scraping phase: VERY SLOW (60% of time)
-                        slowdownFactor = 0.02;
+                        // Mid scraping: FAST (makes it interesting!)
+                        slowdownFactor = 0.20;
                     } else if (prev < 90) {
                         // Analyzing phase: medium
                         slowdownFactor = 0.12;
                     } else {
-                        // Final phase: slow
-                        slowdownFactor = 0.05;
+                        // Final phase: slow (building suspense)
+                        slowdownFactor = 0.04;
                     }
 
                     const increment = (98 - prev) * slowdownFactor * randomFactor;
@@ -303,9 +306,6 @@ export default function LoadingRoadmapPage() {
         }
 
         setLoading(false);
-
-        // Reset progress after a short delay
-        setTimeout(() => setLoadingProgress(0), 500);
     };
 
     return (
@@ -319,8 +319,11 @@ export default function LoadingRoadmapPage() {
                     <div className="mt-6">
                         <div className="w-full bg-gray-200 rounded-full h-4 overflow-hidden">
                             <div
-                                className="bg-gradient-to-r from-blue-500 to-purple-600 h-4 rounded-full transition-all duration-500 ease-out"
-                                style={{ width: `${loadingProgress}%` }}
+                                className="bg-gradient-to-r from-blue-500 to-purple-600 h-4 rounded-full"
+                                style={{
+                                    width: `${loadingProgress}%`,
+                                    transition: 'width 0.6s cubic-bezier(0.4, 0, 0.2, 1)'
+                                }}
                             ></div>
                         </div>
                         <p className="text-center text-sm text-gray-300 mt-2">

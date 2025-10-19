@@ -13,8 +13,13 @@ interface RoadmapTimelineProps {
 // receives array of module objects OR full roadmap data --> displays roadmap
 export default function RoadmapTimeline({ modules }: RoadmapTimelineProps)
 {
+    console.log('RoadmapTimeline received modules:', modules);
+
     // Handle both formats: array of modules OR object with job requirements
     const moduleArray = Array.isArray(modules) ? modules : modules?.modules || [];
+
+    console.log('moduleArray:', moduleArray);
+    console.log('moduleArray length:', moduleArray.length);
 
     // Old format (single job)
     const jobRequirements = !Array.isArray(modules) ? modules?.jobRequirements : null;
@@ -35,6 +40,7 @@ export default function RoadmapTimeline({ modules }: RoadmapTimelineProps)
 
     // If no modules, don't show anything
     if (!moduleArray || moduleArray.length === 0) {
+        console.log('Returning null - no modules found');
         return null;
     }
 
@@ -56,7 +62,10 @@ export default function RoadmapTimeline({ modules }: RoadmapTimelineProps)
 
     return (
         <div>
-            <h2>Your Learning Roadmap</h2>
+            {/* Analysis & Summary */}
+            <div style={{ marginBottom: '24px' }}>
+                <h2 style={{ marginTop: 0, marginBottom: '12px' }}>Analysis</h2>
+                <div>
 
             {/* NEW: Multi-job aggregation summary */}
             {totalJobsAnalyzed && jobSummary && (
@@ -135,8 +144,12 @@ export default function RoadmapTimeline({ modules }: RoadmapTimelineProps)
                     <p style={{ margin: 0, color: '#e65100' }}><strong>{missingSkills.join(', ')}</strong></p>
                 </div>
             )}
+                </div>
+            </div>
 
-            <h3 style={{ marginTop: '30px', marginBottom: '20px' }}>Learning Modules:</h3>
+            {/* LEARNING MODULES */}
+            <div>
+                <h2 style={{ marginTop: 0, marginBottom: '16px' }}>Learning Modules</h2>
 
             {/* Loop through each module */}
             {(() => {
@@ -222,7 +235,7 @@ export default function RoadmapTimeline({ modules }: RoadmapTimelineProps)
                                                         return (
                                                             <div key={dayIndex} style={{
                                                                 marginBottom: '10px',
-                                                                padding: '10px',
+                                                                padding: '12px',
                                                                 backgroundColor: 'white',
                                                                 borderLeft: '3px solid #2196F3',
                                                                 borderRadius: '4px'
@@ -273,6 +286,7 @@ export default function RoadmapTimeline({ modules }: RoadmapTimelineProps)
                 );
             });
             })()}
+            </div>
         </div>
     );
 }
