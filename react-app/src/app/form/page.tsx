@@ -103,8 +103,24 @@ export default function Form() {
             STEP 4: FIND THE GAPS
             Compare aggregated job requirements to user skills. What specific technologies does the user NOT have?
 
-            STEP 5: CREATE PRIORITIZED ROADMAP
-            Create modules for missing skills, starting with CRITICAL technologies first, then HIGH PRIORITY, then MEDIUM.
+            STEP 5: CREATE PRIORITIZED ROADMAP (MAX 7 TECHNOLOGIES)
+            CRITICAL RULE: Include a MAXIMUM of 7 technologies in the roadmap.
+
+            Priority order:
+            1. Include ALL CRITICAL technologies (appearing in all jobs) - these are non-negotiable
+            2. Include HIGH PRIORITY technologies (50%+ jobs) - focus on most industry-relevant
+            3. If still under 7, add MEDIUM PRIORITY - choose the most widely-used/industry-standard ones
+            4. SKIP LOW PRIORITY unless there's room and they're highly relevant
+
+            If you have more than 7 technologies:
+            - Keep all CRITICAL
+            - Prioritize by industry relevance and market demand
+            - Choose technologies that are:
+              * Most commonly used in the industry
+              * Have strong job market demand
+              * Are foundational/transferable skills
+
+            Create modules starting with CRITICAL, then HIGH, then MEDIUM.
 
             Return your response as valid JSON in this exact format:
             {
@@ -137,11 +153,12 @@ export default function Form() {
             }
 
             CRITICAL REQUIREMENTS:
+            - MAXIMUM 7 MODULES - Be selective! Choose the most industry-relevant technologies
             - If jobs are TOO DIFFERENT (unrelated career paths), set "similarJobs": false and mention this in jobSummary
             - ONLY create modules for technologies in "missingSkills"
             - Each module focuses on ONE specific technology
             - Include "priority" field in each module (critical/high/medium/low)
-            - Start with CRITICAL priority modules first
+            - Start with CRITICAL priority modules first, then HIGH, then MEDIUM
             - Provide 3+ FREE resources per module`;
 
             // Job URLs will be handled by the API - just mention them in the prompt
