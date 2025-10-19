@@ -30,7 +30,7 @@ export default function Form() {
 
                 {/* Title */}
                 <h1 className="text-3xl font-bold text-center mb-8">
-                    Roadmap
+                    Generate Roadmap
                 </h1>
 
                 <form onSubmit={handleSubmit} className="space-y-6">
@@ -67,12 +67,19 @@ export default function Form() {
                         />
                     </div>
 
-                    <div>
+                    <div className="flex items-center justify-center gap-4">
                         <Link href="/">
-                        <button type="button">Back</button>
+                            <button type="button" className="p-3 text-2xl hover:opacity-70">
+                                ←
+                            </button>
                         </Link>
-                        <button type="submit">Generate Roadmap</button>
+                            <button type="submit" className="px-6 py-3 bg-white/20 text-white rounded-full 
+                                hover:bg-white/40 hover:scale-110 transition-all backdrop-blur-sm border 
+                                border-white/30 cursor-pointer">
+                                Generate Roadmap
+                            </button>
                     </div>
+
                 </form>
             </div>
         </div>
