@@ -15,6 +15,15 @@ export default function Form() {
     const [modules, setModules] = useState<any[]>([]);              //Parsed roadmap
     const [loading, setLoading] = useState(false);                  //loading state while API
 
+    // CLARIFICATION FEATURE - Currently disabled
+    // Uncomment these states if you want to re-enable the clarification feature
+    // const [clarificationNeeded, setClarificationNeeded] = useState(false);
+    // const [clarificationQuestions, setClarificationQuestions] = useState<string[]>([]);
+    // const [userAnswers, setUserAnswers] = useState<{[key: string]: boolean}>({});
+    // const [highPriority, setHighPriority] = useState<string[]>([]);
+    // const [lowPriority, setLowPriority] = useState<string[]>([]);
+    // const [useClarifications, setUseClarifications] = useState(true);
+
     // resume upload
     const handleResumeUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
@@ -56,6 +65,12 @@ export default function Form() {
         try {
             // Base prompt for Gemini - JOB-FOCUSED approach
             let prompt = `You are a career advisor creating a PERSONALIZED learning roadmap.
+
+            CRITICAL: IGNORE ALL SOFT SKILLS AND NON-TECHNICAL REQUIREMENTS
+            - Skip: communication, teamwork, problem-solving, leadership, troubleshooting, debugging, etc.
+            - ONLY extract TECHNICAL skills and technologies
+            - ONLY extract specific, named technologies (Python, Java, React, AWS, Docker, Kubernetes, etc.)
+            - IGNORE vague terms like "web development", "distributed systems", "machine learning" unless they name specific tools
 
             STEP 1: READ THE JOB POSTING
             If a URL is provided, VISIT IT and read the entire page content.
@@ -120,6 +135,29 @@ export default function Form() {
                 prompt += `\n\nTARGET JOB REQUIREMENTS:\n${jobReqs}\n\nAnalyze these job postings to understand what skills/qualifications are REQUIRED.`;
             }
 
+            // CLARIFICATION FEATURE - Commented out
+            // Uncomment this section if you re-enable clarifications
+            /*
+            if (Object.keys(userAnswers).length > 0) {
+                const hasExperience = Object.entries(userAnswers)
+                    .filter(([_, hasExp]) => hasExp)
+                    .map(([tech]) => tech);
+                const noExperience = Object.entries(userAnswers)
+                    .filter(([_, hasExp]) => !hasExp)
+                    .map(([tech]) => tech);
+
+                prompt += `\n\nUSER CLARIFICATION (this is a SECOND submission after user answered clarifying questions):`;
+                if (hasExperience.length > 0) {
+                    prompt += `\nUser HAS experience with: ${hasExperience.join(', ')}`;
+                }
+                if (noExperience.length > 0) {
+                    prompt += `\nUser DOES NOT have experience with: ${noExperience.join(', ')}`;
+                }
+                prompt += `\n\nIMPORTANT: DO NOT ask for clarification again. Create the final roadmap now.`;
+                prompt += `\nCreate a roadmap that includes ONLY the technologies the user does NOT have experience with.`;
+            }
+            */
+
             const res = await fetch("/api/gemini-rest", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
@@ -153,14 +191,32 @@ export default function Form() {
                     const parsed = JSON.parse(jsonText);
 
                     console.log("=== PARSED RESPONSE ===");
-                    console.log("jobPostingPreview:", parsed.jobPostingPreview);
-                    console.log("jobRequirements:", parsed.jobRequirements);
                     console.log("Full parsed:", parsed);
                     console.log("=====================");
+
+                    // CLARIFICATION FEATURE - Commented out
+                    // Uncomment this block if you re-enable clarifications
+                    /*
+                    if (parsed.needsClarification && parsed.questions && useClarifications) {
+                        setClarificationNeeded(true);
+                        setClarificationQuestions(parsed.questions);
+                        setHighPriority(parsed.highPriority || []);
+                        setLowPriority(parsed.lowPriority || []);
+                        setUserAnswers({});
+                        setModules([]);
+                        setResponse("");
+                    } else {
+                    */
+
+                    // Normal roadmap response
+                    console.log("jobPostingPreview:", parsed.jobPostingPreview);
+                    console.log("jobRequirements:", parsed.jobRequirements);
 
                     // Set the entire parsed object (includes jobPostingPreview, jobRequirements, etc.)
                     setModules(parsed);
                     setResponse(""); // Clear text response since we have modules
+
+                    // } // End of clarification block
                 } catch (parseError) {
                     // If JSON parsing fails, show as text
                     console.error("Failed to parse JSON:", parseError);
@@ -230,17 +286,57 @@ export default function Form() {
                     <div>
                         <label className="block mb-2">Job Requirements</label>
                         <p className="text-sm text-gray-600 mb-2">
-                            <strong>Option 1:</strong> Paste a job posting URL (AI will try to read it - may not always work)
+                            <strong>Option 1:</strong> ✨ Paste a job posting URL - we'll automatically scrape it!
                             <br />
-                            <strong>Option 2:</strong> Copy/paste the "Requirements" or "Qualifications" section text (more reliable)
+                            <span className="text-xs text-gray-500">
+                                Note: Some sites (Indeed, LinkedIn) have bot protection. For those, use Option 2.
+                            </span>
+                            <br />
+                            <strong>Option 2:</strong> Copy/paste the "Requirements" or "Qualifications" section text
                         </p>
                         <textarea
                             value={jobReqs}
                             onChange={(e) => setJobReqs(e.target.value)}
-                            placeholder="Paste URL OR job requirements text:&#10;&#10;URL example: https://company.com/jobs/software-engineer&#10;&#10;Text example:&#10;• 3+ years with React, TypeScript&#10;• Experience with AWS, Docker&#10;• Strong Python skills"
+                            placeholder="Paste URL OR job requirements text:&#10;&#10;URL: https://company.com/jobs/software-engineer&#10;&#10;Or paste text from job posting:&#10;• 3+ years with React, TypeScript&#10;• Experience with AWS, Docker&#10;• Strong Python skills"
                             className="w-full p-3 border rounded h-32"
                         />
                     </div>
+
+                    {/* CLARIFICATION FEATURE - Commented out */}
+                    {/* To re-enable:
+                        1. Uncomment the state variables at the top of the file
+                        2. Uncomment the clarification logic in handleSubmit
+                        3. Uncomment this UI section
+                        4. Import ClarificationBox component: import ClarificationBox from '../components/ClarificationBox';
+                    */}
+                    {/*
+                    <div className="flex items-center justify-between">
+                        <span className="text-sm text-gray-600">Clarify vague requirements</span>
+                        <button
+                            type="button"
+                            onClick={() => setUseClarifications(!useClarifications)}
+                            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                                useClarifications ? 'bg-green-500' : 'bg-gray-300'
+                            }`}
+                        >
+                            <span
+                                className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                                    useClarifications ? 'translate-x-6' : 'translate-x-1'
+                                }`}
+                            />
+                        </button>
+                    </div>
+
+                    {clarificationNeeded && clarificationQuestions.length > 0 && (
+                        <ClarificationBox
+                            highPriority={highPriority}
+                            lowPriority={lowPriority}
+                            questions={clarificationQuestions}
+                            userAnswers={userAnswers}
+                            onAnswerChange={setUserAnswers}
+                        />
+                    )}
+                    */}
 
                     <div className="flex items-center justify-center gap-4">
                         <Link href="/">
@@ -248,12 +344,12 @@ export default function Form() {
                                 ←
                             </button>
                         </Link>
-                            <button 
-                            type="submit" 
+                            <button
+                            type="submit"
                             disabled={loading}
-                            className="px-6 py-3 bg-white/20 text-white rounded-full 
-                                hover:bg-white/40 hover:scale-110 transition-all backdrop-blur-sm border 
-                                border-white/30 cursor-pointer 
+                            className="px-6 py-3 bg-white/20 text-white rounded-full
+                                hover:bg-white/40 hover:scale-110 transition-all backdrop-blur-sm border
+                                border-white/30 cursor-pointer
                                 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100">
                                 {loading ? "Generating..." : "Generate Roadmap"}
                             </button>

@@ -15,8 +15,65 @@ export async function POST(req) {
     // Handle job requirements (URLs or text)
     let jobRequirements = "";
     if (jobReqs && jobReqs.trim()) {
-      // Just pass the job reqs directly - let Gemini handle URL fetching if needed
-      jobRequirements = `\n\nJOB POSTING(S):\n${jobReqs}\n\nIf URLs are provided, visit them and extract all technical requirements.`;
+      // Check if it's a URL
+      if (jobReqs.trim().startsWith('http')) {
+        try {
+          console.log("=== SCRAPING URL WITH JINA AI ===");
+          console.log("Original URL:", jobReqs.trim());
+
+          // Use Jina AI Reader to scrape the webpage (handles JavaScript)
+          const jinaUrl = `https://r.jina.ai/${jobReqs.trim()}`;
+          const jinaResponse = await fetch(jinaUrl, {
+            headers: {
+              'Accept': 'text/plain',
+            }
+          });
+
+          if (!jinaResponse.ok) {
+            const statusCode = jinaResponse.status;
+            if (statusCode === 524) {
+              throw new Error('URL took too long to load (timeout) - please copy/paste the requirements text instead');
+            } else if (statusCode === 403 || statusCode === 401) {
+              throw new Error('URL is protected and cannot be scraped - please copy/paste the requirements text instead');
+            } else {
+              throw new Error(`Could not scrape URL (status ${statusCode}) - please copy/paste the requirements text instead`);
+            }
+          }
+
+          const scrapedContent = await jinaResponse.text();
+
+          console.log("=== SCRAPED CONTENT (first 1000 chars) ===");
+          console.log(scrapedContent.substring(0, 1000));
+          console.log("==========================================");
+
+          // Check if we hit a bot protection page (Cloudflare, etc.)
+          if (scrapedContent.includes('Cloudflare') ||
+              scrapedContent.includes('Additional Verification Required') ||
+              scrapedContent.includes('Ray ID') ||
+              scrapedContent.includes('Waiting for') ||
+              scrapedContent.length < 500) {
+            console.log("⚠️  BOT PROTECTION DETECTED - Content not accessible");
+            throw new Error('Website has bot protection - please copy/paste the job requirements text instead');
+          }
+
+          console.log("✅ Successfully scraped content from URL");
+          jobRequirements = `\n\nJOB POSTING CONTENT (scraped from ${jobReqs.trim()}):\n${scrapedContent}`;
+        } catch (err) {
+          console.error("Error scraping URL with Jina:", err);
+
+          // Return a clear error message to the user instead of falling back to Gemini
+          // (because Gemini will just hallucinate if it can't actually read the URL)
+          return new Response(
+            JSON.stringify({
+              error: `❌ URL Scraping Failed: ${err.message}\n\nPlease copy and paste the job requirements text directly into the form instead.`
+            }),
+            { status: 400 }
+          );
+        }
+      } else {
+        // User pasted text directly
+        jobRequirements = `\n\nJOB REQUIREMENTS (provided by user):\n${jobReqs}`;
+      }
     }
 
     // Build the parts array dynamically based on what's provided

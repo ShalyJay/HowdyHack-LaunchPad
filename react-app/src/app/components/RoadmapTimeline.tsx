@@ -33,7 +33,7 @@ export default function RoadmapTimeline({ modules }: RoadmapTimelineProps)
             {jobPostingPreview && (
                 <div style={{ marginBottom: '20px', padding: '15px', border: '2px solid #9C27B0', borderRadius: '8px', backgroundColor: '#f3e5f5' }}>
                     <h3 style={{ margin: '0 0 10px 0', color: '#7B1FA2' }}>🔍 What Gemini Read from URL:</h3>
-                    <p style={{ margin: 0, fontSize: '12px', fontFamily: 'monospace' }}>{jobPostingPreview}</p>
+                    <p style={{ margin: 0, fontSize: '12px', fontFamily: 'monospace', color: '#4A148C' }}>{jobPostingPreview}</p>
                 </div>
             )}
 
@@ -41,7 +41,7 @@ export default function RoadmapTimeline({ modules }: RoadmapTimelineProps)
             {jobRequirements && jobRequirements.length > 0 && (
                 <div style={{ marginBottom: '20px', padding: '15px', border: '2px solid #4CAF50', borderRadius: '8px', backgroundColor: '#f1f8f4' }}>
                     <h3 style={{ margin: '0 0 10px 0', color: '#2e7d32' }}>📋 Job Requirements (Technologies Needed):</h3>
-                    <p style={{ margin: 0 }}><strong>{jobRequirements.join(', ')}</strong></p>
+                    <p style={{ margin: 0, color: '#1b5e20' }}><strong>{jobRequirements.join(', ')}</strong></p>
                 </div>
             )}
 
@@ -49,7 +49,7 @@ export default function RoadmapTimeline({ modules }: RoadmapTimelineProps)
             {currentSkills && currentSkills.length > 0 && (
                 <div style={{ marginBottom: '20px', padding: '15px', border: '2px solid #2196F3', borderRadius: '8px', backgroundColor: '#e3f2fd' }}>
                     <h3 style={{ margin: '0 0 10px 0', color: '#1976d2' }}>✅ Your Current Skills:</h3>
-                    <p style={{ margin: 0 }}>{currentSkills.join(', ')}</p>
+                    <p style={{ margin: 0, color: '#0d47a1' }}>{currentSkills.join(', ')}</p>
                 </div>
             )}
 
@@ -57,7 +57,7 @@ export default function RoadmapTimeline({ modules }: RoadmapTimelineProps)
             {missingSkills && missingSkills.length > 0 && (
                 <div style={{ marginBottom: '20px', padding: '15px', border: '2px solid #FF9800', borderRadius: '8px', backgroundColor: '#fff3e0' }}>
                     <h3 style={{ margin: '0 0 10px 0', color: '#f57c00' }}>🎯 Skills You Need to Learn:</h3>
-                    <p style={{ margin: 0 }}><strong>{missingSkills.join(', ')}</strong></p>
+                    <p style={{ margin: 0, color: '#e65100' }}><strong>{missingSkills.join(', ')}</strong></p>
                 </div>
             )}
 
