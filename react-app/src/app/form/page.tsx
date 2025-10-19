@@ -1,24 +1,25 @@
- 'use client';
+'use client';
 
-  import Image from 'next/image';
-  import Link from 'next/link';
-  import { useState } from 'react';
+import Image from 'next/image';
+import Link from 'next/link';
+import { useState } from 'react';
 
-  export default function Form() {
+export default function Form() {
     // form input states
     const [resume, setResume] = useState<File | null>(null);        //resume input
     const [fileData, setFileData] = useState<string | null>(null);  //base64 resume data for API
     const [skills, setSkills] = useState("");                       //skills text input
     const [jobReqs, setJobReqs] = useState("");                     //job qualifications input (paste for now, links later)
     const [response, setResponse] = useState("");                   //Gemini API response
-    const [loading, setLoading] = useState(false);                  //loading state while API processes
+    const [loading, setLoading] = useState(false);                  //loading state while API
 
     // resume upload
     const handleResumeUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
-        if (!file) return;
+        if(!file) return;
 
-        // check if resume file is pdf
+
+        //check if resume file is pdf
         if (file.type !== "application/pdf") {
             alert("Please upload a PDF file.");
             return;
@@ -38,6 +39,8 @@
     // entire form submission
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+        // Handle form submission here
+        console.log({resume, skills, jobReqs});
 
         // require resume, skills, or both
         if (!fileData && !skills.trim()) {
@@ -53,6 +56,7 @@
             let prompt = `Analyze the resume and skills provided. Create a learning 
             roadmap to help achieve the job requirements. List main skills and experience, 
             identify gaps, and suggest a step-by-step learning path.`;
+        
 
             // Add job requirements to prompt if provided
             if (jobReqs && jobReqs.trim()) {
@@ -71,7 +75,7 @@
 
             const data = await res.json();
             setResponse(data.text || data.error || "No response");
-        } catch (error) {
+        } catch(error){
             console.error(error);
             setResponse("Error connecting to Gemini API.");
         }
@@ -103,15 +107,15 @@
                         />
                         <label htmlFor="resume-upload" className="cursor-pointer">
                             {resume ? (
-                                <div>
-                                    <p className="text-lg text-green-600">✓{resume.name}</p>
-                                    <p className="text-sm mt-2 text-gray-500">click to change</p>
-                                </div>
+                            <div>
+                                <p className="text-lg text-green-600">✓ {resume.name}</p>
+                                <p className="text-sm mt-2 text-gray-500">click to change</p>
+                            </div>
                             ) : (
-                                <div>
-                                    <p className="text-lg">📄 Click to upload PDF</p>
-                                    <p className="text-sm mt-2 text-gray-500">or drag and drop</p>
-                                </div>
+                            <div>
+                                <p className="text-lg">📄 Click to upload PDF</p>
+                                <p className="text-sm mt-2 text-gray-500">or drag and drop</p>
+                            </div>
                             )}
                         </label>
                         </div>
@@ -143,28 +147,30 @@
                                 ←
                             </button>
                         </Link>
-                        <button 
+                            <button 
                             type="submit" 
                             disabled={loading}
                             className="px-6 py-3 bg-white/20 text-white rounded-full 
                                 hover:bg-white/40 hover:scale-110 transition-all backdrop-blur-sm border 
                                 border-white/30 cursor-pointer 
                                 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100">
-                            {loading ? "Generating..." : "Generate Roadmap"}
-                        </button>
+                                {loading ? "Generating..." : "Generate Roadmap"}
+                            </button>
                     </div>
-
                 </form>
-
+                
                 {/* Response Display */}
                 {response && (
                     <div className="mt-8 p-4 border rounded">
-                        <h2 className="text-xl font-bold mb-4">Your Learning Roadmap:</h2>
+                        <h2 className="text-xl font-bold mb-4">Your Learning
+                            Roadmap:
+                        </h2>
                         <div className="whitespace-pre-wrap">
                             {response}
                         </div>
                     </div>
                 )}
+
             </div>
         </div>
     );
