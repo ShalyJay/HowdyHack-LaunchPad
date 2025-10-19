@@ -1,3 +1,7 @@
+'use client';
+
+import { useState, useEffect, useMemo, useRef } from 'react';
+
 interface Module {
     title: string;
     duration: string;
@@ -13,13 +17,41 @@ interface RoadmapTimelineProps {
 // receives array of module objects OR full roadmap data --> displays roadmap
 export default function RoadmapTimeline({ modules }: RoadmapTimelineProps)
 {
-    console.log('RoadmapTimeline received modules:', modules);
+    const [expandedModules, setExpandedModules] = useState<Set<number>>(new Set());
+    const previousModuleCountRef = useRef<number>(0);
+
+    console.log('🎨 RoadmapTimeline RENDER - modules:', modules);
 
     // Handle both formats: array of modules OR object with job requirements
     const moduleArray = Array.isArray(modules) ? modules : modules?.modules || [];
 
-    console.log('moduleArray:', moduleArray);
+    // Memoize the module array length to detect actual changes
+    const moduleCount = useMemo(() => {
+        console.log('📊 useMemo recalculating moduleCount:', moduleArray.length);
+        return moduleArray.length;
+    }, [moduleArray.length]);
+
+    // Reset expanded modules only when the number of modules actually changes (not on initial mount)
+    useEffect(() => {
+        console.log('🔄 useEffect [moduleCount] triggered. prev:', previousModuleCountRef.current, 'current:', moduleCount);
+        if (previousModuleCountRef.current !== 0 && previousModuleCountRef.current !== moduleCount) {
+            console.log('⚠️ Module count changed! Resetting expanded modules');
+            setExpandedModules(new Set());
+        }
+        previousModuleCountRef.current = moduleCount;
+    }, [moduleCount]);
+
     console.log('moduleArray length:', moduleArray.length);
+
+    const toggleModule = (index: number) => {
+        const newExpanded = new Set(expandedModules);
+        if (newExpanded.has(index)) {
+            newExpanded.delete(index);
+        } else {
+            newExpanded.add(index);
+        }
+        setExpandedModules(newExpanded);
+    };
 
     // Old format (single job)
     const jobRequirements = !Array.isArray(modules) ? modules?.jobRequirements : null;
@@ -61,9 +93,9 @@ export default function RoadmapTimeline({ modules }: RoadmapTimelineProps)
     };
 
     return (
-        <div>
-            {/* Analysis & Summary */}
-            <div style={{ marginBottom: '24px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '400px 1fr', gap: '32px', alignItems: 'start' }}>
+            {/* LEFT: Analysis & Summary - Sticky */}
+            <div style={{ position: 'sticky', top: '20px', maxHeight: 'calc(100vh - 40px)', overflowY: 'auto' }}>
                 <h2 style={{ marginTop: 0, marginBottom: '12px' }}>Analysis</h2>
                 <div>
 
@@ -147,7 +179,7 @@ export default function RoadmapTimeline({ modules }: RoadmapTimelineProps)
                 </div>
             </div>
 
-            {/* LEARNING MODULES */}
+            {/* RIGHT: Learning Modules - Scrollable */}
             <div>
                 <h2 style={{ marginTop: 0, marginBottom: '16px' }}>Learning Modules</h2>
 
@@ -165,42 +197,73 @@ export default function RoadmapTimeline({ modules }: RoadmapTimelineProps)
                     };
                     const priorityStyle = module.priority ? priorityColors[module.priority] : null;
 
+                const isExpanded = expandedModules.has(index);
+
                 return (
                     <div key={index} style={{
-                        marginBottom: '20px',
-                        padding: '15px',
+                        marginBottom: '16px',
                         border: priorityStyle ? `2px solid ${priorityStyle.border}` : '1px solid #ddd',
                         borderRadius: '8px',
                         backgroundColor: priorityStyle ? priorityStyle.bg : 'white',
-                        color: '#333'
+                        color: '#333',
+                        overflow: 'hidden'
                     }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
-                            <h3 style={{ margin: 0, color: '#222' }}>{module.title}</h3>
-                            {priorityStyle && (
-                                <span style={{
-                                    padding: '4px 12px',
-                                    backgroundColor: 'white',
-                                    border: `1px solid ${priorityStyle.border}`,
-                                    borderRadius: '12px',
-                                    fontSize: '12px',
-                                    fontWeight: 'bold',
-                                    color: priorityStyle.text
-                                }}>
-                                    {priorityStyle.label}
-                                </span>
-                            )}
+                        {/* Header - Always Visible */}
+                        <div
+                            onClick={() => toggleModule(index)}
+                            style={{
+                                padding: '16px',
+                                cursor: 'pointer',
+                                display: 'flex',
+                                justifyContent: 'space-between',
+                                alignItems: 'center',
+                                userSelect: 'none'
+                            }}
+                        >
+                            <div style={{ flex: 1 }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '4px' }}>
+                                    <h3 style={{ margin: 0, color: '#222', fontSize: '18px' }}>{module.title}</h3>
+                                    {priorityStyle && (
+                                        <span style={{
+                                            padding: '4px 10px',
+                                            backgroundColor: 'white',
+                                            border: `1px solid ${priorityStyle.border}`,
+                                            borderRadius: '12px',
+                                            fontSize: '11px',
+                                            fontWeight: 'bold',
+                                            color: priorityStyle.text
+                                        }}>
+                                            {priorityStyle.label}
+                                        </span>
+                                    )}
+                                </div>
+                                <p style={{ margin: '4px 0 0 0', color: '#666', fontSize: '14px' }}>
+                                    {module.duration} • {module.skills.join(', ')}
+                                </p>
+                            </div>
+                            <div style={{
+                                fontSize: '24px',
+                                color: '#666',
+                                transform: isExpanded ? 'rotate(180deg)' : 'rotate(0deg)',
+                                transition: 'transform 0.2s ease'
+                            }}>
+                                ▼
+                            </div>
                         </div>
-                        <p style={{ color: '#444' }}><strong>Duration:</strong> {module.duration}</p>
-                        <p style={{ color: '#444' }}>{module.description}</p>
 
-                    <div>
-                        <p style={{ color: '#444' }}><strong>Skills:</strong></p>
-                        {module.skills.map((skill: string, skillIndex: number) => (
-                            <span key={skillIndex} style={{ marginRight: '10px', padding: '4px 8px', backgroundColor: '#e0e0e0', borderRadius: '4px', color: '#333' }}>
-                                {skill}
-                            </span>
-                        ))}
-                    </div>
+                        {/* Collapsible Content */}
+                        {isExpanded && (
+                            <div style={{ padding: '0 16px 16px 16px', borderTop: '1px solid rgba(0,0,0,0.1)' }}>
+                                <p style={{ color: '#444', marginTop: '12px' }}>{module.description}</p>
+
+                                <div style={{ marginTop: '12px' }}>
+                                    <p style={{ color: '#444', fontWeight: 'bold', marginBottom: '8px' }}>Skills:</p>
+                                    {module.skills.map((skill: string, skillIndex: number) => (
+                                        <span key={skillIndex} style={{ marginRight: '8px', marginBottom: '8px', display: 'inline-block', padding: '4px 10px', backgroundColor: '#e0e0e0', borderRadius: '4px', color: '#333', fontSize: '13px' }}>
+                                            {skill}
+                                        </span>
+                                    ))}
+                                </div>
 
                     {/* Weekly Breakdown with Daily Plan - Coursera style */}
                     {module.weeklyBreakdown && module.weeklyBreakdown.length > 0 && (
@@ -282,7 +345,9 @@ export default function RoadmapTimeline({ modules }: RoadmapTimelineProps)
                             </ul>
                         </div>
                     )}
-                </div>
+                            </div>
+                        )}
+                    </div>
                 );
             });
             })()}

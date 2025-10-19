@@ -1,8 +1,9 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { useRoadmap } from '../context/RoadmapContext';
+import RoadmapTimeline from '../components/RoadmapTimeline';
 
 export default function LoadingRoadmapPage() {
     const router = useRouter();
@@ -13,28 +14,61 @@ export default function LoadingRoadmapPage() {
         timeFrameMonths,
         daysPerWeek,
         studyIntensity,
+        modules,
+        response,
         setModules,
         setResponse,
         loading,
         setLoading,
         loadingProgress,
-        setLoadingProgress
+        setLoadingProgress,
+        setResume,
+        setFileData,
+        setSkills,
+        setJobUrls,
+        setTimeFrameMonths,
+        setDaysPerWeek,
+        setStudyIntensity
     } = useRoadmap();
 
-    // Generate roadmap on component mount
-    useEffect(() => {
-        generateRoadmap();
-    }, []);
+    // Store a stable reference to modules that only updates when content actually changes
+    const stableModulesRef = useRef<any>(null);
+    const modulesStringRef = useRef<string>('');
 
-    // Navigate to roadmap when complete (success or error)
+    const currentString = JSON.stringify(modules);
+
+    if (modulesStringRef.current !== currentString) {
+        console.log('📝 Modules content changed, updating stable reference');
+        modulesStringRef.current = currentString;
+        stableModulesRef.current = modules;
+    } else {
+        console.log('✅ Modules content unchanged');
+    }
+
+    const stableModules = stableModulesRef.current;
+
+    // Check if modules already exist on mount (e.g., user refreshed)
     useEffect(() => {
-        if (!loading) {
-            // Small delay before navigating
-            setTimeout(() => {
-                router.push('/roadmap');
-            }, 500);
+        console.log('=== LOADING-ROADMAP MOUNT ===');
+        console.log('modules:', modules);
+        console.log('loading:', loading);
+        console.log('loadingProgress:', loadingProgress);
+
+        const hasModules = modules && (Array.isArray(modules) ? modules.length > 0 : modules.modules?.length > 0);
+        console.log('hasModules:', hasModules);
+
+        if (hasModules) {
+            // Already have roadmap data, just show it
+            console.log('✅ Modules exist, showing roadmap');
+            setLoadingProgress(100);
+            setLoading(false);
+        } else {
+            // No data, generate fresh
+            console.log('🔄 No modules, generating roadmap');
+            setLoadingProgress(0);
+            generateRoadmap();
         }
-    }, [loading, router]);
+    }, []); // Empty deps - only run once on mount
 
     const generateRoadmap = async () => {
         const filledUrls = jobUrls.filter(url => url.trim() !== "");
@@ -50,24 +84,23 @@ export default function LoadingRoadmapPage() {
                     // Add random increment that gets smaller as we approach 98%
                     const randomFactor = 0.5 + Math.random() * 0.5; // Random between 0.5 and 1.0
 
-                    // Different speeds for different phases
-                    // 0-10: fast, 10-40: slow, 40-70: FAST (interesting!), 70-90: medium, 90-100: slow
+                    // Different speeds for different phases - slower overall
                     let slowdownFactor;
                     if (prev < 10) {
-                        // Starting phase: fast
-                        slowdownFactor = 0.30;
-                    } else if (prev < 40) {
-                        // Early scraping: slow
-                        slowdownFactor = 0.03;
-                    } else if (prev < 70) {
-                        // Mid scraping: FAST (makes it interesting!)
+                        // Starting phase: medium
                         slowdownFactor = 0.20;
+                    } else if (prev < 40) {
+                        // Early scraping: very slow
+                        slowdownFactor = 0.02;
+                    } else if (prev < 70) {
+                        // Mid scraping: medium
+                        slowdownFactor = 0.10;
                     } else if (prev < 90) {
-                        // Analyzing phase: medium
-                        slowdownFactor = 0.12;
+                        // Analyzing phase: slow
+                        slowdownFactor = 0.06;
                     } else {
-                        // Final phase: slow (building suspense)
-                        slowdownFactor = 0.04;
+                        // Final phase: very slow (building suspense)
+                        slowdownFactor = 0.03;
                     }
 
                     const increment = (98 - prev) * slowdownFactor * randomFactor;
@@ -75,7 +108,7 @@ export default function LoadingRoadmapPage() {
                 }
                 return prev;
             });
-        }, 600); // Update every 600ms for smoother feel
+        }, 800); // Update every 800ms (slower than 600ms)
 
         try {
             // Base prompt for Gemini - MULTI-JOB AGGREGATION approach
@@ -255,6 +288,8 @@ export default function LoadingRoadmapPage() {
             if (data.error) {
                 setResponse(data.error);
                 setModules([]);
+                setLoadingProgress(100);
+                setLoading(false); // Set loading false after state updates
             } else if (data.text) {
                 // Try to parse JSON from Gemini's response
                 try {
@@ -278,61 +313,132 @@ export default function LoadingRoadmapPage() {
                     console.log("jobPostingPreview:", parsed.jobPostingPreview);
                     console.log("jobRequirements:", parsed.jobRequirements);
 
-                    // Add schedule metadata to parsed object (start date = today)
-                    parsed.startDate = new Date().toISOString().split('T')[0];
-                    parsed.daysPerWeek = daysPerWeek;
+                    // Add schedule metadata to parsed object (start date = today) - only if not already set
+                    if (!parsed.startDate) {
+                        parsed.startDate = new Date().toISOString().split('T')[0];
+                    }
+                    if (!parsed.daysPerWeek) {
+                        parsed.daysPerWeek = daysPerWeek;
+                    }
 
                     // Set the entire parsed object (includes jobPostingPreview, jobRequirements, etc.)
                     setModules(parsed);
                     setResponse(""); // Clear text response since we have modules
+
+                    // Wait for state to update before setting loading to false
+                    setTimeout(() => {
+                        setLoadingProgress(100);
+                        setLoading(false);
+                    }, 200);
                 } catch (parseError) {
                     // If JSON parsing fails, show as text
                     console.error("Failed to parse JSON:", parseError);
                     setResponse(data.text);
                     setModules([]);
+                    setLoadingProgress(100);
+                    setLoading(false); // Set loading false after state updates
                 }
             } else {
                 setResponse("No response");
                 setModules([]);
+                setLoadingProgress(100);
+                setLoading(false); // Set loading false after state updates
             }
-
-            setLoadingProgress(100); // Complete
 
         } catch (error) {
             console.error(error);
             setResponse("Error connecting to Gemini API.");
             clearInterval(progressInterval); // Stop the interval on error
             setLoadingProgress(0); // Reset on error
+            setLoading(false); // Set loading false after error handling
         }
-
-        setLoading(false);
     };
 
+    const handleCreateNew = () => {
+        // Reset all state
+        setResume(null);
+        setFileData(null);
+        setSkills("");
+        setJobUrls(["", "", "", "", ""]);
+        setTimeFrameMonths(3);
+        setDaysPerWeek(5);
+        setStudyIntensity("moderate");
+        setModules([]);
+        setResponse("");
+        setLoadingProgress(0);
+
+        // Navigate to resume page
+        router.push('/resume');
+    };
+
+    console.log('=== RENDER ===');
+    console.log('loading:', loading, 'loadingProgress:', loadingProgress);
+    console.log('stableModules:', stableModules);
+
+    // Show loading progress while generating
+    if (loading || loadingProgress < 100) {
+        console.log('📊 Showing loading screen');
+        return (
+            <div className="min-h-screen flex items-center justify-center p-8">
+                <div className="w-full max-w-2xl">
+                    <div className="space-y-6">
+                        <h1 className="text-3xl font-bold text-center mb-8">
+                            Generating Your Roadmap
+                        </h1>
+
+                        <div className="mt-6">
+                            <div className="w-full bg-gray-200 rounded-full h-4 overflow-hidden">
+                                <div
+                                    className="bg-gradient-to-r from-blue-500 to-purple-600 h-4 rounded-full"
+                                    style={{
+                                        width: `${loadingProgress}%`,
+                                        transition: 'width 0.6s cubic-bezier(0.4, 0, 0.2, 1)'
+                                    }}
+                                ></div>
+                            </div>
+                            <p className="text-center text-sm text-gray-300 mt-2">
+                                {loadingProgress < 10 && "Starting analysis..."}
+                                {loadingProgress >= 10 && loadingProgress < 70 && "Scraping job postings..."}
+                                {loadingProgress >= 70 && loadingProgress < 90 && "Analyzing requirements..."}
+                                {loadingProgress >= 90 && loadingProgress < 100 && "Creating your roadmap..."}
+                                {loadingProgress === 100 && "Complete!"}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
+    // Show roadmap when complete
+    console.log('✅ Showing roadmap');
     return (
         <div className="min-h-screen flex items-center justify-center p-8">
-            <div className="w-full max-w-2xl">
+            <div className="w-full max-w-7xl">
                 <div className="space-y-6">
                     <h1 className="text-3xl font-bold text-center mb-8">
-                        Generating Your Roadmap
+                        Your Learning Roadmap
                     </h1>
 
-                    <div className="mt-6">
-                        <div className="w-full bg-gray-200 rounded-full h-4 overflow-hidden">
-                            <div
-                                className="bg-gradient-to-r from-blue-500 to-purple-600 h-4 rounded-full"
-                                style={{
-                                    width: `${loadingProgress}%`,
-                                    transition: 'width 0.6s cubic-bezier(0.4, 0, 0.2, 1)'
-                                }}
-                            ></div>
+                    <RoadmapTimeline modules={stableModules} />
+
+                    {/* Fallback: show text response if json parsing failed */}
+                    {response && (
+                        <div className="mt-8 p-4 border rounded">
+                            <h2 className="text-xl font-bold mb-4">Your Learning Roadmap:</h2>
+                            <div className="whitespace-pre-wrap">
+                                {response}
+                            </div>
                         </div>
-                        <p className="text-center text-sm text-gray-300 mt-2">
-                            {loadingProgress < 10 && "Starting analysis..."}
-                            {loadingProgress >= 10 && loadingProgress < 70 && "Scraping job postings..."}
-                            {loadingProgress >= 70 && loadingProgress < 90 && "Analyzing requirements..."}
-                            {loadingProgress >= 90 && loadingProgress < 100 && "Creating your roadmap..."}
-                            {loadingProgress === 100 && "Complete!"}
-                        </p>
+                    )}
+
+                    <div className="flex justify-center mt-8">
+                        <button
+                            onClick={handleCreateNew}
+                            className="px-6 py-3 bg-white/20 text-white rounded-lg hover:bg-white/40 transition-all backdrop-blur-sm border border-white/30"
+                        >
+                            Create New Roadmap
+                        </button>
                     </div>
                 </div>
             </div>

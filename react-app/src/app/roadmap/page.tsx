@@ -1,5 +1,6 @@
 'use client';
 
+import { useMemo, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useRoadmap } from '../context/RoadmapContext';
 import RoadmapTimeline from '../components/RoadmapTimeline';
@@ -21,6 +22,16 @@ export default function RoadmapPage() {
         setLoadingProgress
     } = useRoadmap();
 
+    // Memoize modules to prevent unnecessary re-renders
+    const stableModules = useMemo(() => modules, [JSON.stringify(modules)]);
+
+    // Redirect to loading-roadmap if no modules (user navigated directly to /roadmap)
+    useEffect(() => {
+        if (!stableModules || (Array.isArray(stableModules) && stableModules.length === 0)) {
+            router.push('/loading-roadmap');
+        }
+    }, [stableModules, router]);
+
     const handleCreateNew = () => {
         // Reset all state
         setResume(null);
@@ -40,13 +51,13 @@ export default function RoadmapPage() {
 
     return (
         <div className="min-h-screen flex items-center justify-center p-8">
-            <div className="w-full max-w-2xl">
+            <div className="w-full max-w-7xl">
                 <div className="space-y-6">
                     <h1 className="text-3xl font-bold text-center mb-8">
                         Your Learning Roadmap
                     </h1>
 
-                    <RoadmapTimeline modules={modules} />
+                    <RoadmapTimeline modules={stableModules} />
 
                     {/* Fallback: show text response if json parsing failed */}
                     {response && (
