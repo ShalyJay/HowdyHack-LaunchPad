@@ -20,7 +20,8 @@ export default function Home() {
         {/* Call to Action */}
       <div className="pb-20 flex justify-center">
         <Link href="/form">
-          <button>
+          <button className="px-6 py-3 bg-white/20 text-white rounded-full hover:bg-white/40 hover:scale-100
+            transition-all backdrop-blur-sm border border-white/30 cursor-pointer">
             Start Your Journey →
           </button>
         </Link>
