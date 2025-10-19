@@ -17,7 +17,7 @@ export default function Home() {
           <SpinningSphere />
 
           {/* Subtitle */}
-          <p className="text-center text-xl font-semibold" style={{ marginTop: '-20px' }}>
+          <p className="text-center text-xl font-semibold" style={{ marginTop: '-20px', fontFamily: 'var(--font-orbitron)' }}>
             Where careers take off.
           </p>
 
@@ -32,7 +32,8 @@ export default function Home() {
               fontSize: '16px',
               fontWeight: '600',
               cursor: 'pointer',
-              transition: 'all 0.3s ease'
+              transition: 'all 0.3s ease',
+              fontFamily: 'var(--font-orbitron)'
             }}
             onMouseEnter={(e) => {
               e.currentTarget.style.transform = 'translateY(-2px)';

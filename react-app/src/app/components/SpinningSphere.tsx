@@ -292,7 +292,8 @@ export default function SpinningSphere() {
         whiteSpace: 'nowrap',
         //textTransform: 'uppercase',
         marginBottom: '-20px',
-        marginTop: '-40px'
+        marginTop: '60px',
+        fontFamily: 'var(--font-orbitron)'
       }}>
         Launch Pad
       </div>

@@ -44,9 +44,9 @@ export default function JobsPage() {
                         <p className="text-sm text-gray-600 mb-3">
                             Enter job URLs you're interested in. We'll analyze them and create a roadmap with the most important skills.
                             <br />
-                            <span className="text-xs text-gray-500">
-                                ⚠️ Note: Some sites (Indeed, LinkedIn) have bot protection and may not work.
-                            </span>
+                            {/* <span className="text-xs text-gray-500"> */}
+                                {/* ⚠️ Note: Some sites (Indeed, LinkedIn) have bot protection and may not work. */}
+                            {/* </span> */}
                         </p>
                         <div className="space-y-3">
                             {jobUrls.map((url, index) => {

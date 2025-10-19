@@ -141,7 +141,8 @@ export default function ProgressNavbar() {
                                 color: isCurrent ? 'var(--text-primary)' : isCompleted ? 'var(--text-secondary)' : 'var(--text-muted)',
                                 fontWeight: isCurrent ? '600' : isCompleted ? '500' : 'normal',
                                 textAlign: 'center',
-                                whiteSpace: 'nowrap'
+                                whiteSpace: 'nowrap',
+                                fontFamily: 'var(--font-orbitron)'
                             }}>
                                 {step.name}
                             </span>
