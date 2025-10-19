@@ -10,10 +10,8 @@ export async function POST(req) {
     const text = result.response.text();
 
     return new Response(JSON.stringify({ text }), { status: 200 });
-  } 
-  
-  catch (error) {
-    console.error("Gemini API Error:", error);
-    return new Response(JSON.stringify({ error: error.message }), { status: 500 });
+  } catch (err) {
+    console.error(err);
+    return new Response(JSON.stringify({ error: err.message }), { status: 500 });
   }
 }
