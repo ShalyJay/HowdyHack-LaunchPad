@@ -11,6 +11,7 @@ export default function Form() {
     const [skills, setSkills] = useState("");                       //skills text input
     const [jobReqs, setJobReqs] = useState("");                     //job qualifications input (paste for now, links later)
     const [response, setResponse] = useState("");                   //Gemini API response
+    const [modules, setModules] = useState<any[]>([]);              //Parsed roadmap
     const [loading, setLoading] = useState(false);                  //loading state while API
 
     // resume upload
@@ -88,11 +89,40 @@ export default function Form() {
             });
 
             const data = await res.json();
-            setResponse(data.text || data.error || "No response");
-        } catch(error){
-            console.error(error);
-            setResponse("Error connecting to Gemini API.");
-        }
+            
+            if (data.error) {
+                setResponse(data.error);
+                setModules([]);
+            } else if (data.text) {
+            // Try to parse JSON from Gemini's response
+                try {
+                    // Sometimes Gemini wraps JSON in markdown code blocks, so we need to extract it
+                    let jsonText = data.text;
+
+                    // Remove markdown code blocks if present
+                    if (jsonText.includes('```json')) {
+                        jsonText = jsonText.split('```json')[1].split('```')[0].trim();
+                    } else if (jsonText.includes('```')) {
+                        jsonText = jsonText.split('```')[1].split('```')[0].trim();
+                    }
+
+                    const parsed = JSON.parse(jsonText);
+                    setModules(parsed.modules || []);
+                    setResponse(""); // Clear text response since we have modules
+                } catch (parseError) {
+                    // If JSON parsing fails, show as text
+                    console.error("Failed to parse JSON:", parseError);
+                    setResponse(data.text);
+                    setModules([]);
+                }
+            } else {
+                setResponse("No response");
+                setModules([]);
+            }
+            } catch(error){
+                console.error(error);
+                setResponse("Error connecting to Gemini API.");
+            }
 
         setLoading(false);
     };
