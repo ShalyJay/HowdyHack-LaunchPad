@@ -11,6 +11,7 @@ export default function Form() {
     const [fileData, setFileData] = useState<string | null>(null);  //base64 resume data for API
     const [skills, setSkills] = useState("");                       //skills text input
     const [jobUrls, setJobUrls] = useState<string[]>(["", "", "", "", ""]); //up to 5 job URLs
+    const [visibleUrlInputs, setVisibleUrlInputs] = useState<number>(1); // Track how many URL inputs to show
     const [response, setResponse] = useState("");                   //Gemini API response
     const [modules, setModules] = useState<any[]>([]);              //Parsed roadmap
     const [loading, setLoading] = useState(false);                  //loading state while API
@@ -324,29 +325,58 @@ export default function Form() {
                     </div>
 
                     <div>
-                        <label className="block mb-2">Job Posting URLs (1-5 jobs)</label>
+                        <label className="block mb-2">
+                            Job Posting URLs (1-5 jobs)
+                            {jobUrls.filter(url => url.trim() !== "").length > 0 && (
+                                <span className="ml-2 text-sm text-gray-500">
+                                    ({jobUrls.filter(url => url.trim() !== "").length}/5 added)
+                                </span>
+                            )}
+                        </label>
                         <p className="text-sm text-gray-600 mb-3">
-                            Enter 1-5 job URLs you're interested in. We'll analyze them and create a roadmap with the most important skills across all jobs.
+                            Enter job URLs you're interested in. We'll analyze them and create a roadmap with the most important skills.
                             <br />
                             <span className="text-xs text-gray-500">
                                 ⚠️ Note: Some sites (Indeed, LinkedIn) have bot protection and may not work.
                             </span>
                         </p>
-                        <div className="space-y-2">
-                            {jobUrls.map((url, index) => (
-                                <input
-                                    key={index}
-                                    type="url"
-                                    value={url}
-                                    onChange={(e) => {
-                                        const newUrls = [...jobUrls];
-                                        newUrls[index] = e.target.value;
-                                        setJobUrls(newUrls);
-                                    }}
-                                    placeholder={`Job ${index + 1} URL ${index === 0 ? '(required)' : '(optional)'}`}
-                                    className="w-full p-3 border rounded"
-                                />
-                            ))}
+                        <div className="space-y-3">
+                            {jobUrls.map((url, index) => {
+                                // Only show this input if it's within the visible count
+                                if (index >= visibleUrlInputs) return null;
+
+                                return (
+                                    <div
+                                        key={index}
+                                        className={index > 0 ? "animate-fadeIn" : ""}
+                                    >
+                                        <input
+                                            type="url"
+                                            value={url}
+                                            onChange={(e) => {
+                                                const newUrls = [...jobUrls];
+                                                newUrls[index] = e.target.value;
+                                                setJobUrls(newUrls);
+
+                                                // Auto-hide subsequent empty inputs when user clears a field
+                                                if (e.target.value.trim() === "" && index < visibleUrlInputs - 1) {
+                                                    // If this input is now empty and there are inputs after it, hide them
+                                                    setVisibleUrlInputs(index + 1);
+                                                }
+                                            }}
+                                            onKeyDown={(e) => {
+                                                // When user presses Enter, show the next input (if not at max)
+                                                if (e.key === 'Enter' && visibleUrlInputs < 5 && jobUrls[index].trim() !== "") {
+                                                    e.preventDefault(); // Prevent form submission
+                                                    setVisibleUrlInputs(visibleUrlInputs + 1);
+                                                }
+                                            }}
+                                            placeholder={`Job ${index + 1} URL ${index === 0 ? '(required)' : '(optional)'}`}
+                                            className="w-full p-3 border rounded"
+                                        />
+                                    </div>
+                                );
+                            })}
                         </div>
                     </div>
 
