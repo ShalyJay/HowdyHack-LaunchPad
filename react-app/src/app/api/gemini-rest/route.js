@@ -14,7 +14,17 @@ export async function POST(req) {
     line.trim().startsWith('http'));
 
       if (urls.length > 0) {
-        // todo: fetching logic
+        try{
+          //fetch content from URLs
+          const fetchPromises = urls.map(async (url) =>{
+            const response = await fetch(url.trim());
+            const html = await response.text();
+
+            // add gemini extraction call
+          });
+      } catch (err){
+        console.error("Error fetching job URLS:", err);
+        return `\n\nCould not fetch ${url}`;
       }
     }
 
