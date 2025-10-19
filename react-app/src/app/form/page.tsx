@@ -25,46 +25,47 @@ export default function Form() {
     };
 
     return (
-        <div>
-            <h1>Roadmap</h1>
+        <div className="min-h-screen flex items-center justify-center p-8">
+            <div className="w-full max-w-2xl">
+                <h1>Roadmap</h1>
 
-            <form onSubmit={handleSubmit}>
-            <div>
-                <label>Upload Resume</label>
-                <input
-                type="file"
-                accept=".pdf"
-                onChange={handleResumeUpload}
-                />
-                {resume && <p>Selected: {resume.name}</p>}
+                <form onSubmit={handleSubmit}>
+                <div>
+                    <label>Upload Resume</label>
+                    <input
+                    type="file"
+                    accept=".pdf"
+                    onChange={handleResumeUpload}
+                    />
+                    {resume && <p>Selected: {resume.name}</p>}
+                </div>
+
+                <div>
+                    <label>Your Skills</label>
+                    <textarea
+                    value={skills}
+                    onChange={(e) => setSkills(e.target.value)}
+                    placeholder="e.g., JavaScript, React, Python..."
+                    />
+                </div>
+
+                <div>
+                    <label>Job Links (one per line)</label>
+                    <textarea
+                    value={jobReqs}
+                    onChange={(e) => setJobReqs(e.target.value)}
+                    placeholder="https://example.com/job1"
+                    />
+                </div>
+
+                <div>
+                    <Link href="/">
+                    <button type="button">Back</button>
+                    </Link>
+                    <button type="submit">Generate Roadmap</button>
+                </div>
+                </form>
             </div>
-
-            <div>
-                <label>Your Skills</label>
-                <textarea
-                value={skills}
-                onChange={(e) => setSkills(e.target.value)}
-                placeholder="e.g., JavaScript, React, Python..."
-                />
-            </div>
-
-            <div>
-                <label>Job Links (one per line)</label>
-                <textarea
-                value={jobReqs}
-                onChange={(e) => setJobReqs(e.target.value)}
-                placeholder="https://example.com/job1"
-                />
-            </div>
-
-            <div>
-                <Link href="/">
-                <button type="button">Back</button>
-                </Link>
-                <button type="submit">Generate Roadmap</button>
-            </div>
-            </form>
-
         </div>
     );
 }
