@@ -38,13 +38,28 @@ export default function Form() {
                         <label className="block mb-2">
                             Upload Resume
                         </label>
+                        <div className="border-2 border-dashed rounded-lg p-6 text-center">
                         <input
                             type="file"
                             accept=".pdf"
                             onChange={handleResumeUpload}
-                            className="w-full p-2 border rounded"
+                            className="hidden"
+                            id="resume-upload"
                         />
-                        {resume && <p className="mt-2 text-sm" >Selected: {resume.name}</p>}
+                        <label htmlFor="resume-upload" className="cursor-pointer">
+                            {resume ? (
+                            <div>
+                                <p className="text-lg text-green-600">✓ {resume.name}</p>
+                                <p className="text-sm mt-2 text-gray-500">click to change</p>
+                            </div>
+                            ) : (
+                            <div>
+                                <p className="text-lg">📄 Click to upload PDF</p>
+                                <p className="text-sm mt-2 text-gray-500">or drag and drop</p>
+                            </div>
+                            )}
+                        </label>
+                        </div>
                     </div>
 
                     <div>
