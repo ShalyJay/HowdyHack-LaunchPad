@@ -38,7 +38,24 @@ export async function POST(req) {
             Job Posting HTML:
             ${html.substring(0, 10000)}`;
 
-            //todo: fetch call to gemini
+            const extractResponse = await fetch(
+              `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro:generateContent?key=${apiKey}`,
+              {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                  contents: [{ parts: [{ text: extractionPrompt }] }]
+                })
+              }
+            );
+
+            const extractData = await extractResponse.json();
+            const requirements =
+            extractData.candidates?.[0]?.content?.parts?.[0]?.text || "Could not extract requirements";
+
+            return `\n\nTechnical Requirements from ${url}:\n${requirements}`;
+
+            // We'll parse the response next
 
           });
       } catch (err){
