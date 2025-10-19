@@ -15,6 +15,7 @@ export default function Form() {
     const [response, setResponse] = useState("");                   //Gemini API response
     const [modules, setModules] = useState<any[]>([]);              //Parsed roadmap
     const [loading, setLoading] = useState(false);                  //loading state while API
+    const [loadingProgress, setLoadingProgress] = useState(0);      //progress percentage (0-100)
 
     // CLARIFICATION FEATURE - Currently disabled
     // Uncomment these states if you want to re-enable the clarification feature
@@ -67,7 +68,39 @@ export default function Form() {
         }
 
         setLoading(true);
+        setLoadingProgress(10); // Start progress
         setResponse("");
+
+        // Simulate gradual progress during the long API call
+        const progressInterval = setInterval(() => {
+            setLoadingProgress(prev => {
+                if (prev < 98) {
+                    // Add random increment that gets smaller as we approach 98%
+                    const randomFactor = 0.5 + Math.random() * 0.5; // Random between 0.5 and 1.0
+
+                    // Different speeds for different phases
+                    // 0-10: fast, 10-70: very slow (60% of time), 70-90: medium, 90-100: slow
+                    let slowdownFactor;
+                    if (prev < 10) {
+                        // Starting phase: fast
+                        slowdownFactor = 0.30;
+                    } else if (prev < 70) {
+                        // Scraping phase: VERY SLOW (60% of time)
+                        slowdownFactor = 0.02;
+                    } else if (prev < 90) {
+                        // Analyzing phase: medium
+                        slowdownFactor = 0.12;
+                    } else {
+                        // Final phase: slow
+                        slowdownFactor = 0.05;
+                    }
+
+                    const increment = (98 - prev) * slowdownFactor * randomFactor;
+                    return Math.min(prev + increment, 98);
+                }
+                return prev;
+            });
+        }, 600); // Update every 600ms for smoother feel
 
         try {
             // Base prompt for Gemini - MULTI-JOB AGGREGATION approach
@@ -201,6 +234,9 @@ export default function Form() {
 
             const data = await res.json();
 
+            clearInterval(progressInterval); // Stop the interval
+            setLoadingProgress(99); // Almost done
+
             // Log scraped content to browser console for debugging
             if (data.scrapedJobs && data.scrapedJobs.length > 0) {
                 console.log("\n🔍 === WHAT GEMINI SAW FROM URLS ===");
@@ -268,12 +304,20 @@ export default function Form() {
                 setResponse("No response");
                 setModules([]);
             }
+
+            setLoadingProgress(100); // Complete
+
             } catch(error){
                 console.error(error);
                 setResponse("Error connecting to Gemini API.");
+                clearInterval(progressInterval); // Stop the interval on error
+                setLoadingProgress(0); // Reset on error
             }
 
         setLoading(false);
+
+        // Reset progress after a short delay
+        setTimeout(() => setLoadingProgress(0), 500);
     };
 
     return (
@@ -432,6 +476,25 @@ export default function Form() {
                                 {loading ? "Generating..." : "Generate Roadmap"}
                             </button>
                     </div>
+
+                    {/* Progress Bar */}
+                    {loading && (
+                        <div className="mt-6">
+                            <div className="w-full bg-gray-200 rounded-full h-4 overflow-hidden">
+                                <div
+                                    className="bg-gradient-to-r from-blue-500 to-purple-600 h-4 rounded-full transition-all duration-500 ease-out"
+                                    style={{ width: `${loadingProgress}%` }}
+                                ></div>
+                            </div>
+                            <p className="text-center text-sm text-gray-300 mt-2">
+                                {loadingProgress < 10 && "Starting analysis..."}
+                                {loadingProgress >= 10 && loadingProgress < 70 && "Scraping job postings..."}
+                                {loadingProgress >= 70 && loadingProgress < 90 && "Analyzing requirements..."}
+                                {loadingProgress >= 90 && loadingProgress < 100 && "Creating your roadmap..."}
+                                {loadingProgress === 100 && "Complete!"}
+                            </p>
+                        </div>
+                    )}
                 </form>
                 
                 {/* Response Timeline */}
