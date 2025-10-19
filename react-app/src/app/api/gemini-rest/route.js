@@ -21,6 +21,25 @@ export async function POST(req) {
             const html = await response.text();
 
             // add gemini extraction call
+            const extractionPrompt = `Extract ONLY the technical skills, 
+            qualifications, and requirements from this job posting. 
+
+            Focus on:
+            - Minimum qualifications (technical skills required)
+            - Preferred qualifications (nice to have)
+            - Programming languages
+            - Frameworks/tools
+            - Technical competencies
+
+            Ignore: company description, benefits, culture, soft skills.
+
+            Return as a concise bullet list.
+
+            Job Posting HTML:
+            ${html.substring(0, 10000)}`;
+
+            //todo: fetch call to gemini
+
           });
       } catch (err){
         console.error("Error fetching job URLS:", err);
