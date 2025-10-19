@@ -293,67 +293,46 @@ export default function LoadingRoadmapPage() {
             } else if (data.text) {
                 // Try to parse JSON from Gemini's response
                 try {
-                    // Sometimes Gemini wraps JSON in markdown code blocks, so we need to extract it
                     let jsonText = data.text;
 
-                    // Remove markdown code blocks if present
+                    // Remove markdown wrappers
                     if (jsonText.includes('```json')) {
-                        jsonText = jsonText.split('```json')[1].split('```')[0].trim();
+                      jsonText = jsonText.split('```json')[1].split('```')[0].trim();
                     } else if (jsonText.includes('```')) {
-                        jsonText = jsonText.split('```')[1].split('```')[0].trim();
+                      jsonText = jsonText.split('```')[1].split('```')[0].trim();
                     }
-
-                    // Try to find JSON object/array in the text
+                
+                    // Extract JSON object
                     const jsonMatch = jsonText.match(/\{[\s\S]*\}|\[[\s\S]*\]/);
-                    if (jsonMatch) {
-                        jsonText = jsonMatch[0];
-                    }
-
+                    if (jsonMatch) jsonText = jsonMatch[0];
+                
+                    // Sanitize invalid backslashes
+                    jsonText = jsonText.replace(/\\(?!["\\/bfnrtu])/g, "\\\\").trim();
+                
                     const parsed = JSON.parse(jsonText);
-
-                    console.log("=== PARSED RESPONSE ===");
-                    console.log("Full parsed:", parsed);
-                    console.log("=====================");
-
-                    // Normal roadmap response
-                    console.log("jobPostingPreview:", parsed.jobPostingPreview);
-                    console.log("jobRequirements:", parsed.jobRequirements);
-
-                    // Add schedule metadata to parsed object (start date = today) - only if not already set
-                    if (!parsed.startDate) {
-                        parsed.startDate = new Date().toISOString().split('T')[0];
-                    }
-                    if (!parsed.daysPerWeek) {
-                        parsed.daysPerWeek = daysPerWeek;
-                    }
-
-                    // Set the entire parsed object (includes jobPostingPreview, jobRequirements, etc.)
+                    console.log("=== PARSED RESPONSE ===", parsed);
+                
                     setModules(parsed);
-                    setResponse(""); // Clear text response since we have modules
-
-                    // Wait for state to update before setting loading to false
+                    setResponse("");
                     setTimeout(() => {
-                        setLoadingProgress(100);
-                        setLoading(false);
+                      setLoadingProgress(100);
+                      setLoading(false);
                     }, 200);
-                } catch (parseError) {
-                    // If JSON parsing fails, show as text
+                }catch (parseError) {
                     console.error("Failed to parse JSON:", parseError);
                     console.error("Raw response text:", data.text);
-
-                    // Show helpful error message
-                    setResponse("⚠️ The AI generated an invalid response. Please try again with different job URLs or a simpler request.\n\nRaw response:\n" + data.text);
+                    setResponse("⚠️ The AI generated an invalid response. Please try again.\n\nRaw response:\n" + data.text);
                     setModules([]);
                     setLoadingProgress(100);
-                    setLoading(false); // Set loading false after state updates
-                }
+                    setLoading(false);
+                }                     
+
             } else {
                 setResponse("No response");
                 setModules([]);
                 setLoadingProgress(100);
                 setLoading(false); // Set loading false after state updates
             }
-
         } catch (error) {
             console.error(error);
             setResponse("Error connecting to Gemini API.");
