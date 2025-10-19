@@ -154,6 +154,38 @@ export default function RoadmapPage() {
                         Your Learning Roadmap
                     </h1>
 
+                    <div style={{ textAlign: 'center', marginBottom: '30px', padding: '20px', backgroundColor: '#f0f0f0' }}>
+                        <button
+                            onClick={() => setShowCalendarModal(true)}
+                            style={{
+                                padding: '15px 30px',
+                                marginRight: '10px',
+                                fontSize: '18px',
+                                backgroundColor: '#4CAF50',
+                                color: 'white',
+                                border: 'none',
+                                borderRadius: '5px',
+                                cursor: 'pointer'
+                            }}
+                        >
+                            📅 Download Calendar
+                        </button>
+                        <button
+                            onClick={handleCreateNew}
+                            style={{
+                                padding: '15px 30px',
+                                fontSize: '18px',
+                                backgroundColor: '#f44336',
+                                color: 'white',
+                                border: 'none',
+                                borderRadius: '5px',
+                                cursor: 'pointer'
+                            }}
+                        >
+                            Create New Roadmap
+                        </button>
+                    </div>
+
                     <RoadmapTimeline modules={stableModules} />
 
                     {/* Fallback: show text response if json parsing failed */}
@@ -165,57 +197,6 @@ export default function RoadmapPage() {
                             </div>
                         </div>
                     )}
-
-                    <h1 style={{ fontSize: '50px', color: 'red', textAlign: 'center', margin: '50px 0' }}>
-                        TEST TEXT BEFORE BUTTONS
-                    </h1>
-
-                    <div className="flex justify-center gap-4 mt-8">
-                        <button
-                            onClick={() => setShowCalendarModal(true)}
-                            style={{
-                                padding: '12px 24px',
-                                background: '#FF0000',
-                                color: 'white',
-                                border: '3px solid black',
-                                borderRadius: '10px',
-                                fontSize: '15px',
-                                fontWeight: '600',
-                                cursor: 'pointer',
-                                transition: 'all 0.3s ease'
-                            }}
-                            onMouseEnter={(e) => {
-                                e.currentTarget.style.transform = 'translateY(-2px)';
-                            }}
-                            onMouseLeave={(e) => {
-                                e.currentTarget.style.transform = 'translateY(0)';
-                            }}
-                        >
-                            📅 Download Calendar
-                        </button>
-                        <button
-                            onClick={handleCreateNew}
-                            style={{
-                                padding: '12px 24px',
-                                background: 'linear-gradient(135deg, var(--pink-main) 0%, var(--purple-main) 100%)',
-                                color: 'var(--white)',
-                                border: 'none',
-                                borderRadius: '10px',
-                                fontSize: '15px',
-                                fontWeight: '600',
-                                cursor: 'pointer',
-                                transition: 'all 0.3s ease'
-                            }}
-                            onMouseEnter={(e) => {
-                                e.currentTarget.style.transform = 'translateY(-2px)';
-                            }}
-                            onMouseLeave={(e) => {
-                                e.currentTarget.style.transform = 'translateY(0)';
-                            }}
-                        >
-                            Create New Roadmap
-                        </button>
-                    </div>
 
                     {/* Calendar Download Modal */}
                     {showCalendarModal && (

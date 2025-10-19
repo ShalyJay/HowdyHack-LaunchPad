@@ -1,12 +1,15 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useRoadmap } from '../context/RoadmapContext';
 import RoadmapTimeline from '../components/RoadmapTimeline';
 
 export default function LoadingRoadmapPage() {
     const router = useRouter();
+    const [showCalendarModal, setShowCalendarModal] = useState(false);
+    const [studyTime, setStudyTime] = useState('09:00');
+    const [selectedDays, setSelectedDays] = useState<number[]>([1, 2, 3, 4, 5]); // Mon-Fri by default
     const {
         fileData,
         skills,
@@ -376,8 +379,119 @@ export default function LoadingRoadmapPage() {
         setResponse("");
         setLoadingProgress(0);
 
+        // Clear localStorage
+        if (typeof window !== 'undefined') {
+            localStorage.removeItem('roadmap-modules');
+            localStorage.removeItem('roadmap-response');
+        }
+
         // Navigate to resume page
         router.push('/resume');
+    };
+
+    const generateICSFile = () => {
+        const moduleData = stableModules as any;
+        const moduleArray = Array.isArray(moduleData) ? moduleData : moduleData?.modules || [];
+        const startDate = moduleData?.startDate || new Date().toISOString().split('T')[0];
+
+        let icsContent = 'BEGIN:VCALENDAR\r\nVERSION:2.0\r\nPRODID:-//Job Roadmap Generator//EN\r\nCALSCALE:GREGORIAN\r\nMETHOD:PUBLISH\r\n';
+
+        let studyDayCounter = 0;
+        const [hours, minutes] = studyTime.split(':');
+
+        // Convert selected days (0-6) to RRULE day format (SU,MO,TU,WE,TH,FR,SA)
+        const dayMap = ['SU', 'MO', 'TU', 'WE', 'TH', 'FR', 'SA'];
+        const byDayString = selectedDays.map(day => dayMap[day]).join(',');
+
+        moduleArray.forEach((module: any, moduleIndex: number) => {
+            if (module.weeklyBreakdown && module.weeklyBreakdown.length > 0) {
+                // Calculate total occurrences for this module
+                let totalDays = 0;
+                module.weeklyBreakdown.forEach((week: any) => {
+                    if (week.dailyPlan && week.dailyPlan.length > 0) {
+                        totalDays += week.dailyPlan.length;
+                    }
+                });
+
+                if (totalDays > 0) {
+                    // Find the first study day for this module
+                    let currentDate = new Date(startDate);
+                    let foundStudyDays = 0;
+
+                    while (foundStudyDays < studyDayCounter) {
+                        const dayOfWeek = currentDate.getDay();
+                        if (selectedDays.includes(dayOfWeek)) {
+                            foundStudyDays++;
+                        }
+                        if (foundStudyDays < studyDayCounter) {
+                            currentDate.setDate(currentDate.getDate() + 1);
+                        }
+                    }
+
+                    // Ensure we're on a valid study day
+                    while (!selectedDays.includes(currentDate.getDay())) {
+                        currentDate.setDate(currentDate.getDate() + 1);
+                    }
+
+                    const dateStr = currentDate.toISOString().split('T')[0].replace(/-/g, '');
+                    const startTime = `${dateStr}T${hours.padStart(2, '0')}${minutes.padStart(2, '0')}00`;
+
+                    // Use average duration or default to 2 hours
+                    let avgDuration = 2;
+                    const firstDay = module.weeklyBreakdown[0]?.dailyPlan?.[0];
+                    if (firstDay?.estimatedHours) {
+                        const durationMatch = firstDay.estimatedHours.match(/(\d+\.?\d*)/);
+                        avgDuration = durationMatch ? parseFloat(durationMatch[1]) : 2;
+                    }
+
+                    const endDate = new Date(currentDate);
+                    endDate.setHours(parseInt(hours) + Math.floor(avgDuration));
+                    endDate.setMinutes(parseInt(minutes) + ((avgDuration % 1) * 60));
+                    const endTime = `${dateStr}T${String(endDate.getHours()).padStart(2, '0')}${String(endDate.getMinutes()).padStart(2, '0')}00`;
+
+                    // Build description with all topics
+                    let description = `Module: ${module.title}\\n\\n`;
+                    description += `Topics covered:\\n`;
+                    module.weeklyBreakdown.forEach((week: any, weekIdx: number) => {
+                        if (week.dailyPlan && week.dailyPlan.length > 0) {
+                            week.dailyPlan.forEach((day: any, dayIdx: number) => {
+                                description += `Day ${studyDayCounter + weekIdx + dayIdx + 1}: ${day.topic}\\n`;
+                            });
+                        }
+                    });
+
+                    icsContent += `BEGIN:VEVENT\r\n`;
+                    icsContent += `DTSTART:${startTime}\r\n`;
+                    icsContent += `DTEND:${endTime}\r\n`;
+                    icsContent += `RRULE:FREQ=DAILY;BYDAY=${byDayString};COUNT=${totalDays}\r\n`;
+                    icsContent += `SUMMARY:${module.title}\r\n`;
+                    icsContent += `DESCRIPTION:${description}\r\n`;
+                    icsContent += `UID:module-${moduleIndex}@roadmap\r\n`;
+                    icsContent += `END:VEVENT\r\n`;
+
+                    studyDayCounter += totalDays;
+                }
+            }
+        });
+
+        icsContent += 'END:VCALENDAR\r\n';
+
+        // Download the file
+        const blob = new Blob([icsContent], { type: 'text/calendar;charset=utf-8' });
+        const link = document.createElement('a');
+        link.href = window.URL.createObjectURL(blob);
+        link.download = 'learning-roadmap.ics';
+        link.click();
+
+        setShowCalendarModal(false);
+    };
+
+    const toggleDay = (day: number) => {
+        setSelectedDays(prev =>
+            prev.includes(day)
+                ? prev.filter(d => d !== day)
+                : [...prev, day].sort()
+        );
     };
 
     console.log('=== RENDER ===');
@@ -454,7 +568,30 @@ export default function LoadingRoadmapPage() {
                         </div>
                     )}
 
-                    <div className="flex justify-center mt-8">
+                    <div className="flex justify-center gap-4 mt-8">
+                        <button
+                            onClick={() => setShowCalendarModal(true)}
+                            style={{
+                                padding: '12px 20px',
+                                background: 'var(--blue-main)',
+                                color: 'white',
+                                border: 'none',
+                                borderRadius: '10px',
+                                fontSize: '18px',
+                                cursor: 'pointer',
+                                transition: 'all 0.3s ease'
+                            }}
+                            onMouseEnter={(e) => {
+                                e.currentTarget.style.transform = 'translateY(-2px)';
+                                e.currentTarget.style.boxShadow = '0 4px 12px rgba(61, 90, 117, 0.3)';
+                            }}
+                            onMouseLeave={(e) => {
+                                e.currentTarget.style.transform = 'translateY(0)';
+                                e.currentTarget.style.boxShadow = 'none';
+                            }}
+                        >
+                            📅 ⬇️
+                        </button>
                         <button
                             onClick={handleCreateNew}
                             style={{
@@ -478,6 +615,124 @@ export default function LoadingRoadmapPage() {
                             Create New Roadmap
                         </button>
                     </div>
+
+                    {/* Calendar Download Modal */}
+                    {showCalendarModal && (
+                        <div style={{
+                            position: 'fixed',
+                            top: 0,
+                            left: 0,
+                            right: 0,
+                            bottom: 0,
+                            backgroundColor: 'rgba(0,0,0,0.5)',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            zIndex: 1000
+                        }}>
+                            <div style={{
+                                backgroundColor: 'white',
+                                padding: '32px',
+                                borderRadius: '12px',
+                                maxWidth: '500px',
+                                width: '90%',
+                                fontFamily: 'var(--font-archivo)'
+                            }}>
+                                <h2 style={{ marginTop: 0, marginBottom: '24px', fontFamily: 'var(--font-orbitron)' }}>Calendar Settings</h2>
+
+                                <div style={{ marginBottom: '20px' }}>
+                                    <label style={{ display: 'block', marginBottom: '8px', fontWeight: '600' }}>
+                                        Study Time
+                                    </label>
+                                    <input
+                                        type="time"
+                                        value={studyTime}
+                                        onChange={(e) => setStudyTime(e.target.value)}
+                                        style={{
+                                            width: '100%',
+                                            padding: '10px',
+                                            border: '1px solid #ddd',
+                                            borderRadius: '6px',
+                                            fontSize: '16px',
+                                            fontFamily: 'var(--font-archivo)',
+                                            letterSpacing: 'normal'
+                                        }}
+                                    />
+                                </div>
+
+                                <div style={{ marginBottom: '24px' }}>
+                                    <label style={{ display: 'block', marginBottom: '8px', fontWeight: '600' }}>
+                                        Study Days
+                                    </label>
+                                    <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                                        {[
+                                            { name: 'Sun', value: 0 },
+                                            { name: 'Mon', value: 1 },
+                                            { name: 'Tue', value: 2 },
+                                            { name: 'Wed', value: 3 },
+                                            { name: 'Thu', value: 4 },
+                                            { name: 'Fri', value: 5 },
+                                            { name: 'Sat', value: 6 }
+                                        ].map(day => (
+                                            <button
+                                                key={day.value}
+                                                onClick={() => toggleDay(day.value)}
+                                                style={{
+                                                    padding: '8px 16px',
+                                                    border: selectedDays.includes(day.value)
+                                                        ? '2px solid var(--blue-main)'
+                                                        : '2px solid #ddd',
+                                                    borderRadius: '6px',
+                                                    backgroundColor: selectedDays.includes(day.value)
+                                                        ? 'var(--blue-main)'
+                                                        : 'white',
+                                                    color: selectedDays.includes(day.value)
+                                                        ? 'white'
+                                                        : 'var(--text-primary)',
+                                                    cursor: 'pointer',
+                                                    fontWeight: '600',
+                                                    transition: 'all 0.2s ease'
+                                                }}
+                                            >
+                                                {day.name}
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+
+                                <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
+                                    <button
+                                        onClick={() => setShowCalendarModal(false)}
+                                        style={{
+                                            padding: '10px 20px',
+                                            border: '2px solid #ddd',
+                                            borderRadius: '8px',
+                                            backgroundColor: 'white',
+                                            cursor: 'pointer',
+                                            fontWeight: '600'
+                                        }}
+                                    >
+                                        Cancel
+                                    </button>
+                                    <button
+                                        onClick={generateICSFile}
+                                        disabled={selectedDays.length === 0}
+                                        style={{
+                                            padding: '10px 20px',
+                                            border: 'none',
+                                            borderRadius: '8px',
+                                            backgroundColor: selectedDays.length === 0 ? '#ccc' : 'var(--blue-main)',
+                                            color: 'white',
+                                            cursor: selectedDays.length === 0 ? 'not-allowed' : 'pointer',
+                                            fontWeight: '600'
+                                        }}
+                                    >
+                                        Download ICS
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    )}
                 </div>
             </div>
         </div>
