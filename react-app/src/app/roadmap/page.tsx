@@ -72,7 +72,26 @@ export default function RoadmapPage() {
                     <div className="flex justify-center mt-8">
                         <button
                             onClick={handleCreateNew}
-                            className="px-6 py-3 bg-white/20 text-white rounded-lg hover:bg-white/40 transition-all backdrop-blur-sm border border-white/30"
+                            style={{
+                                padding: '12px 24px',
+                                background: 'linear-gradient(135deg, #ec4899 0%, #9333ea 100%)',
+                                color: '#fff',
+                                border: 'none',
+                                borderRadius: '10px',
+                                fontSize: '15px',
+                                fontWeight: '600',
+                                cursor: 'pointer',
+                                transition: 'all 0.3s ease',
+                                boxShadow: '0 4px 15px rgba(236, 72, 153, 0.4)'
+                            }}
+                            onMouseEnter={(e) => {
+                                e.currentTarget.style.transform = 'translateY(-2px)';
+                                e.currentTarget.style.boxShadow = '0 6px 25px rgba(236, 72, 153, 0.6)';
+                            }}
+                            onMouseLeave={(e) => {
+                                e.currentTarget.style.transform = 'translateY(0)';
+                                e.currentTarget.style.boxShadow = '0 4px 15px rgba(236, 72, 153, 0.4)';
+                            }}
                         >
                             Create New Roadmap
                         </button>

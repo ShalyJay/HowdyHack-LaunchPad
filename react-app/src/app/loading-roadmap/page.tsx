@@ -387,21 +387,35 @@ export default function LoadingRoadmapPage() {
                         </h1>
 
                         <div className="mt-6">
-                            <div className="w-full bg-gray-200 rounded-full h-4 overflow-hidden">
-                                <div
-                                    className="bg-gradient-to-r from-blue-500 to-purple-600 h-4 rounded-full"
-                                    style={{
-                                        width: `${loadingProgress}%`,
-                                        transition: 'width 0.6s cubic-bezier(0.4, 0, 0.2, 1)'
-                                    }}
-                                ></div>
+                            <div style={{
+                                width: '100%',
+                                height: '8px',
+                                backgroundColor: 'rgba(71, 85, 105, 0.3)',
+                                borderRadius: '12px',
+                                overflow: 'hidden',
+                                border: '1px solid rgba(148, 163, 184, 0.2)'
+                            }}>
+                                <div style={{
+                                    width: `${loadingProgress}%`,
+                                    height: '100%',
+                                    background: 'linear-gradient(90deg, #ec4899 0%, #9333ea 50%, #3b82f6 100%)',
+                                    borderRadius: '12px',
+                                    transition: 'width 0.6s cubic-bezier(0.4, 0, 0.2, 1)',
+                                    boxShadow: '0 0 20px rgba(236, 72, 153, 0.5)'
+                                }}></div>
                             </div>
-                            <p className="text-center text-sm text-gray-300 mt-2">
-                                {loadingProgress < 10 && "Starting analysis..."}
-                                {loadingProgress >= 10 && loadingProgress < 70 && "Scraping job postings..."}
-                                {loadingProgress >= 70 && loadingProgress < 90 && "Analyzing requirements..."}
-                                {loadingProgress >= 90 && loadingProgress < 100 && "Creating your roadmap..."}
-                                {loadingProgress === 100 && "Complete!"}
+                            <p style={{
+                                textAlign: 'center',
+                                fontSize: '14px',
+                                color: '#cbd5e1',
+                                marginTop: '12px',
+                                fontWeight: '500'
+                            }}>
+                                {loadingProgress < 10 && "🚀 Starting analysis..."}
+                                {loadingProgress >= 10 && loadingProgress < 70 && "🔍 Scraping job postings..."}
+                                {loadingProgress >= 70 && loadingProgress < 90 && "⚡ Analyzing requirements..."}
+                                {loadingProgress >= 90 && loadingProgress < 100 && "✨ Creating your roadmap..."}
+                                {loadingProgress === 100 && "🎉 Complete!"}
                             </p>
                         </div>
                     </div>
@@ -435,7 +449,26 @@ export default function LoadingRoadmapPage() {
                     <div className="flex justify-center mt-8">
                         <button
                             onClick={handleCreateNew}
-                            className="px-6 py-3 bg-white/20 text-white rounded-lg hover:bg-white/40 transition-all backdrop-blur-sm border border-white/30"
+                            style={{
+                                padding: '12px 24px',
+                                background: 'linear-gradient(135deg, #ec4899 0%, #9333ea 100%)',
+                                color: '#fff',
+                                border: 'none',
+                                borderRadius: '10px',
+                                fontSize: '15px',
+                                fontWeight: '600',
+                                cursor: 'pointer',
+                                transition: 'all 0.3s ease',
+                                boxShadow: '0 4px 15px rgba(236, 72, 153, 0.4)'
+                            }}
+                            onMouseEnter={(e) => {
+                                e.currentTarget.style.transform = 'translateY(-2px)';
+                                e.currentTarget.style.boxShadow = '0 6px 25px rgba(236, 72, 153, 0.6)';
+                            }}
+                            onMouseLeave={(e) => {
+                                e.currentTarget.style.transform = 'translateY(0)';
+                                e.currentTarget.style.boxShadow = '0 4px 15px rgba(236, 72, 153, 0.4)';
+                            }}
                         >
                             Create New Roadmap
                         </button>
