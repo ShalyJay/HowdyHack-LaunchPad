@@ -3,6 +3,7 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { useState } from 'react';
+import RoadmapTimeline from '../components/RoadmapTimeline';
 
 export default function Form() {
     // form input states
