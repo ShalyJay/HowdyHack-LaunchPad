@@ -1,6 +1,6 @@
 'use client';
 
-import { createContext, useContext, useState, ReactNode } from 'react';
+import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 
 interface RoadmapContextType {
     // Form data
@@ -43,8 +43,34 @@ export function RoadmapProvider({ children }: { children: ReactNode }) {
     const [daysPerWeek, setDaysPerWeek] = useState<number>(5);
     const [studyIntensity, setStudyIntensity] = useState<string>("moderate");
 
-    const [modules, setModules] = useState<any[]>([]);
-    const [response, setResponse] = useState<string>("");
+    // Initialize modules and response from localStorage
+    const [modules, setModules] = useState<any[]>(() => {
+        if (typeof window !== 'undefined') {
+            const saved = localStorage.getItem('roadmap-modules');
+            return saved ? JSON.parse(saved) : [];
+        }
+        return [];
+    });
+    const [response, setResponse] = useState<string>(() => {
+        if (typeof window !== 'undefined') {
+            return localStorage.getItem('roadmap-response') || "";
+        }
+        return "";
+    });
+
+    // Persist modules to localStorage whenever they change
+    useEffect(() => {
+        if (typeof window !== 'undefined') {
+            localStorage.setItem('roadmap-modules', JSON.stringify(modules));
+        }
+    }, [modules]);
+
+    // Persist response to localStorage whenever it changes
+    useEffect(() => {
+        if (typeof window !== 'undefined') {
+            localStorage.setItem('roadmap-response', response);
+        }
+    }, [response]);
 
     const [loading, setLoading] = useState<boolean>(false);
     const [loadingProgress, setLoadingProgress] = useState<number>(0);
