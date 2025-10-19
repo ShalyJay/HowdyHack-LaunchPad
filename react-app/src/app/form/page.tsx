@@ -80,6 +80,7 @@ export default function Form() {
             setResponse("Error connecting to Gemini API.");
         }
 
+        setLoading(false);
     };
 
     return (
