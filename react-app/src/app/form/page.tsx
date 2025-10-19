@@ -10,11 +10,17 @@ export default function Form() {
     const [skills, setSkills] = useState("");                   //skills text input
     const [jobReqs, setJobReqs] = useState("");                 //job qualifications input (paste for now, links later)
 
-    // form submission
+    // resume upload
+    const handleResumeUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (e.target.files && e.target.files[0]) {
+            setResume(e.target.files[0]);
+        }
+    };
+
 
     return (
         <div>
-
+            
         </div>
     );
 }
