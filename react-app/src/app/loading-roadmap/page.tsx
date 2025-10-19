@@ -303,6 +303,12 @@ export default function LoadingRoadmapPage() {
                         jsonText = jsonText.split('```')[1].split('```')[0].trim();
                     }
 
+                    // Try to find JSON object/array in the text
+                    const jsonMatch = jsonText.match(/\{[\s\S]*\}|\[[\s\S]*\]/);
+                    if (jsonMatch) {
+                        jsonText = jsonMatch[0];
+                    }
+
                     const parsed = JSON.parse(jsonText);
 
                     console.log("=== PARSED RESPONSE ===");
@@ -333,7 +339,10 @@ export default function LoadingRoadmapPage() {
                 } catch (parseError) {
                     // If JSON parsing fails, show as text
                     console.error("Failed to parse JSON:", parseError);
-                    setResponse(data.text);
+                    console.error("Raw response text:", data.text);
+
+                    // Show helpful error message
+                    setResponse("⚠️ The AI generated an invalid response. Please try again with different job URLs or a simpler request.\n\nRaw response:\n" + data.text);
                     setModules([]);
                     setLoadingProgress(100);
                     setLoading(false); // Set loading false after state updates

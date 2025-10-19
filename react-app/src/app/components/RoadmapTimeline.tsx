@@ -97,15 +97,15 @@ export default function RoadmapTimeline({ modules }: RoadmapTimelineProps)
                 <div style={{
                     marginBottom: '20px',
                     padding: '16px',
-                    border: '1px solid rgba(var(--purple-main-rgb), 0.3)',
+                    border: '2px solid rgba(var(--purple-main-rgb), 0.5)',
                     borderRadius: '8px',
-                    background: 'rgba(var(--purple-main-rgb), 0.05)'
+                    background: 'linear-gradient(135deg, rgba(var(--purple-main-rgb), 0.15), rgba(var(--purple-main-rgb), 0.08))'
                 }}>
-                    <h3 style={{ margin: '0 0 10px 0', color: 'var(--purple-light)', fontWeight: '600' }}>
+                    <h3 style={{ margin: '0 0 10px 0', color: 'var(--purple-main)', fontWeight: '600', fontFamily: 'var(--font-archivo)' }}>
                         📊 Analyzed {totalJobsAnalyzed} Job{totalJobsAnalyzed > 1 ? 's' : ''}
                         {similarJobs === false && ' (⚠️ Different Career Paths)'}
                     </h3>
-                    <p style={{ margin: 0, color: 'var(--text-secondary)' }}>{jobSummary}</p>
+                    <p style={{ margin: 0, color: 'var(--text-secondary)', fontFamily: 'var(--font-archivo)' }}>{jobSummary}</p>
                 </div>
             )}
 
@@ -114,35 +114,35 @@ export default function RoadmapTimeline({ modules }: RoadmapTimelineProps)
                 <div style={{
                     marginBottom: '20px',
                     padding: '16px',
-                    border: '1px solid rgba(var(--blue-main-rgb), 0.3)',
+                    border: '2px solid rgba(var(--blue-main-rgb), 0.5)',
                     borderRadius: '8px',
-                    background: 'rgba(var(--blue-main-rgb), 0.05)'
+                    background: 'linear-gradient(135deg, rgba(var(--blue-main-rgb), 0.15), rgba(var(--blue-main-rgb), 0.08))'
                 }}>
-                    <h3 style={{ margin: '0 0 10px 0', color: 'var(--blue-light)', fontWeight: '600' }}>🔍 Technology Frequency Analysis</h3>
+                    <h3 style={{ margin: '0 0 10px 0', color: 'var(--blue-light)', fontWeight: '600', fontFamily: 'var(--font-archivo)' }}>🔍 Technology Frequency Analysis</h3>
                     {technologyFrequency.critical && technologyFrequency.critical.length > 0 && (
                         <div style={{ marginBottom: '10px' }}>
-                            <p style={{ margin: '5px 0', color: 'var(--pink-light)', fontWeight: 'bold' }}>
+                            <p style={{ margin: '5px 0', color: 'var(--pink-light)', fontWeight: 'bold', fontFamily: 'var(--font-archivo)' }}>
                                 🔥 CRITICAL (All {totalJobsAnalyzed} jobs): {technologyFrequency.critical.join(', ')}
                             </p>
                         </div>
                     )}
                     {technologyFrequency.high && technologyFrequency.high.length > 0 && (
                         <div style={{ marginBottom: '10px' }}>
-                            <p style={{ margin: '5px 0', color: 'var(--purple-light)', fontWeight: 'bold' }}>
+                            <p style={{ margin: '5px 0', color: 'var(--purple-light)', fontWeight: 'bold', fontFamily: 'var(--font-archivo)' }}>
                                 ⭐ HIGH (50%+ jobs): {technologyFrequency.high.join(', ')}
                             </p>
                         </div>
                     )}
                     {technologyFrequency.medium && technologyFrequency.medium.length > 0 && (
                         <div style={{ marginBottom: '10px' }}>
-                            <p style={{ margin: '5px 0', color: 'var(--blue-light)' }}>
+                            <p style={{ margin: '5px 0', color: 'var(--blue-light)', fontFamily: 'var(--font-archivo)' }}>
                                 📌 MEDIUM (2+ jobs): {technologyFrequency.medium.join(', ')}
                             </p>
                         </div>
                     )}
                     {technologyFrequency.low && technologyFrequency.low.length > 0 && (
                         <div>
-                            <p style={{ margin: '5px 0', color: 'var(--text-muted)' }}>
+                            <p style={{ margin: '5px 0', color: 'var(--text-muted)', fontFamily: 'var(--font-archivo)' }}>
                                 💡 LOW (1 job): {technologyFrequency.low.join(', ')}
                             </p>
                         </div>
@@ -155,12 +155,12 @@ export default function RoadmapTimeline({ modules }: RoadmapTimelineProps)
                 <div style={{
                     marginBottom: '20px',
                     padding: '16px',
-                    border: '1px solid rgba(var(--purple-light-rgb), 0.3)',
+                    border: '2px solid rgba(var(--purple-light-rgb), 0.5)',
                     borderRadius: '8px',
-                    background: 'rgba(var(--purple-light-rgb), 0.05)'
+                    background: 'linear-gradient(135deg, rgba(var(--purple-light-rgb), 0.15), rgba(var(--purple-light-rgb), 0.08))'
                 }}>
-                    <h3 style={{ margin: '0 0 10px 0', color: 'var(--purple-light)', fontWeight: '600' }}>🔍 What Gemini Read from URL:</h3>
-                    <p style={{ margin: 0, fontSize: '12px', fontFamily: 'monospace', color: 'var(--text-secondary)' }}>{jobPostingPreview}</p>
+                    <h3 style={{ margin: '0 0 10px 0', color: 'var(--purple-light)', fontWeight: '600', fontFamily: 'var(--font-archivo)' }}>🔍 What Gemini Read from URL:</h3>
+                    <p style={{ margin: 0, fontSize: '12px', fontFamily: 'var(--font-archivo)', color: 'var(--text-secondary)' }}>{jobPostingPreview}</p>
                 </div>
             )}
 
@@ -169,12 +169,12 @@ export default function RoadmapTimeline({ modules }: RoadmapTimelineProps)
                 <div style={{
                     marginBottom: '20px',
                     padding: '16px',
-                    border: '1px solid rgba(var(--blue-light-rgb), 0.3)',
+                    border: '2px solid rgba(var(--blue-light-rgb), 0.5)',
                     borderRadius: '8px',
-                    background: 'rgba(var(--blue-main-rgb), 0.05)'
+                    background: 'linear-gradient(135deg, rgba(var(--blue-main-rgb), 0.15), rgba(var(--blue-main-rgb), 0.08))'
                 }}>
-                    <h3 style={{ margin: '0 0 10px 0', color: 'var(--blue-light)', fontWeight: '600' }}>📋 Job Requirements (Technologies Needed):</h3>
-                    <p style={{ margin: 0, color: 'var(--text-secondary)' }}><strong>{jobRequirements.join(', ')}</strong></p>
+                    <h3 style={{ margin: '0 0 10px 0', color: 'var(--blue-light)', fontWeight: '600', fontFamily: 'var(--font-archivo)' }}>📋 Job Requirements (Technologies Needed):</h3>
+                    <p style={{ margin: 0, color: 'var(--text-secondary)', fontFamily: 'var(--font-archivo)' }}><strong>{jobRequirements.join(', ')}</strong></p>
                 </div>
             )}
 
@@ -183,12 +183,12 @@ export default function RoadmapTimeline({ modules }: RoadmapTimelineProps)
                 <div style={{
                     marginBottom: '20px',
                     padding: '16px',
-                    border: '1px solid rgba(var(--purple-main-rgb), 0.3)',
+                    border: '2px solid rgba(var(--purple-main-rgb), 0.5)',
                     borderRadius: '8px',
-                    background: 'rgba(var(--purple-main-rgb), 0.05)'
+                    background: 'linear-gradient(135deg, rgba(var(--purple-main-rgb), 0.15), rgba(var(--purple-main-rgb), 0.08))'
                 }}>
-                    <h3 style={{ margin: '0 0 10px 0', color: 'var(--purple-light)', fontWeight: '600' }}>✅ Your Current Skills:</h3>
-                    <p style={{ margin: 0, color: 'var(--text-secondary)' }}>{currentSkills.join(', ')}</p>
+                    <h3 style={{ margin: '0 0 10px 0', color: 'var(--purple-main)', fontWeight: '600', fontFamily: 'var(--font-archivo)' }}>✅ Your Current Skills:</h3>
+                    <p style={{ margin: 0, color: 'var(--text-secondary)', fontFamily: 'var(--font-archivo)' }}>{currentSkills.join(', ')}</p>
                 </div>
             )}
 
@@ -197,12 +197,12 @@ export default function RoadmapTimeline({ modules }: RoadmapTimelineProps)
                 <div style={{
                     marginBottom: '20px',
                     padding: '16px',
-                    border: '1px solid rgba(var(--pink-main-rgb), 0.3)',
+                    border: '2px solid rgba(var(--pink-main-rgb), 0.5)',
                     borderRadius: '8px',
-                    background: 'rgba(var(--pink-main-rgb), 0.05)'
+                    background: 'linear-gradient(135deg, rgba(var(--pink-main-rgb), 0.15), rgba(var(--pink-main-rgb), 0.08))'
                 }}>
-                    <h3 style={{ margin: '0 0 10px 0', color: 'var(--pink-light)', fontWeight: '600' }}>🎯 Skills You Need to Learn:</h3>
-                    <p style={{ margin: 0, color: 'var(--text-secondary)' }}><strong>{missingSkills.join(', ')}</strong></p>
+                    <h3 style={{ margin: '0 0 10px 0', color: 'var(--pink-light)', fontWeight: '600', fontFamily: 'var(--font-archivo)' }}>🎯 Skills You Need to Learn:</h3>
+                    <p style={{ margin: 0, color: 'var(--text-secondary)', fontFamily: 'var(--font-archivo)' }}><strong>{missingSkills.join(', ')}</strong></p>
                 </div>
             )}
                 </div>
@@ -220,26 +220,26 @@ export default function RoadmapTimeline({ modules }: RoadmapTimelineProps)
                     // Priority badge colors - minimalist antique space theme
                     const priorityColors: any = {
                         critical: {
-                            bg: 'rgba(var(--pink-main-rgb), 0.08)',
-                            border: 'rgba(var(--pink-main-rgb), 0.4)',
+                            bg: 'linear-gradient(135deg, rgba(var(--pink-main-rgb), 0.2), rgba(var(--pink-main-rgb), 0.1))',
+                            border: 'rgba(var(--pink-light-rgb), 0.6)',
                             text: 'var(--pink-dark)',
                             label: '🔥 CRITICAL'
                         },
                         high: {
-                            bg: 'rgba(var(--purple-main-rgb), 0.08)',
-                            border: 'rgba(var(--purple-main-rgb), 0.4)',
+                            bg: 'linear-gradient(135deg, rgba(var(--purple-main-rgb), 0.2), rgba(var(--purple-main-rgb), 0.1))',
+                            border: 'rgba(var(--purple-light-rgb), 0.6)',
                             text: 'var(--purple-dark)',
                             label: '⭐ HIGH'
                         },
                         medium: {
-                            bg: 'rgba(var(--blue-main-rgb), 0.08)',
-                            border: 'rgba(var(--blue-main-rgb), 0.4)',
+                            bg: 'linear-gradient(135deg, rgba(var(--blue-main-rgb), 0.2), rgba(var(--blue-main-rgb), 0.1))',
+                            border: 'rgba(var(--blue-light-rgb), 0.6)',
                             text: 'var(--blue-dark)',
                             label: '📌 MEDIUM'
                         },
                         low: {
-                            bg: 'rgba(var(--slate-rgb), 0.05)',
-                            border: 'rgba(var(--text-muted), 0.3)',
+                            bg: 'linear-gradient(135deg, rgba(var(--slate-rgb), 0.15), rgba(var(--slate-rgb), 0.08))',
+                            border: 'rgba(var(--text-muted), 0.4)',
                             text: 'var(--text-muted)',
                             label: '💡 LOW'
                         }
@@ -251,9 +251,9 @@ export default function RoadmapTimeline({ modules }: RoadmapTimelineProps)
                 return (
                     <div key={index} style={{
                         marginBottom: '16px',
-                        border: priorityStyle ? `1px solid ${priorityStyle.border}` : '1px solid rgba(var(--text-muted), 0.2)',
+                        border: priorityStyle ? `2px solid ${priorityStyle.border}` : '2px solid rgba(var(--text-muted), 0.3)',
                         borderRadius: '8px',
-                        background: priorityStyle ? priorityStyle.bg : 'rgba(var(--slate-rgb), 0.05)',
+                        background: priorityStyle ? priorityStyle.bg : 'linear-gradient(135deg, rgba(var(--slate-rgb), 0.12), rgba(var(--slate-rgb), 0.06))',
                         color: 'var(--text-primary)',
                         overflow: 'hidden'
                     }}>
@@ -280,13 +280,14 @@ export default function RoadmapTimeline({ modules }: RoadmapTimelineProps)
                                             borderRadius: '12px',
                                             fontSize: '10px',
                                             fontWeight: '600',
-                                            color: priorityStyle.text
+                                            color: priorityStyle.text,
+                                            fontFamily: 'var(--font-archivo)'
                                         }}>
                                             {priorityStyle.label}
                                         </span>
                                     )}
                                 </div>
-                                <p style={{ margin: '4px 0 0 0', color: 'var(--text-secondary)', fontSize: '14px' }}>
+                                <p style={{ margin: '4px 0 0 0', color: 'var(--text-secondary)', fontSize: '14px', fontFamily: 'var(--font-archivo)' }}>
                                     {module.duration} • {module.skills.join(', ')}
                                 </p>
                             </div>
@@ -303,12 +304,12 @@ export default function RoadmapTimeline({ modules }: RoadmapTimelineProps)
                         {/* Collapsible Content */}
                         {isExpanded && (
                             <div style={{ padding: '0 16px 16px 16px', borderTop: '1px solid rgba(0,0,0,0.1)' }}>
-                                <p style={{ color: '#444', marginTop: '12px' }}>{module.description}</p>
+                                <p style={{ color: '#444', marginTop: '12px', fontFamily: 'var(--font-archivo)' }}>{module.description}</p>
 
                                 <div style={{ marginTop: '12px' }}>
-                                    <p style={{ color: '#444', fontWeight: 'bold', marginBottom: '8px' }}>Skills:</p>
+                                    <p style={{ color: '#444', fontWeight: 'bold', marginBottom: '8px', fontFamily: 'var(--font-archivo)' }}>Skills:</p>
                                     {module.skills.map((skill: string, skillIndex: number) => (
-                                        <span key={skillIndex} style={{ marginRight: '8px', marginBottom: '8px', display: 'inline-block', padding: '4px 10px', backgroundColor: '#e0e0e0', borderRadius: '4px', color: '#333', fontSize: '13px' }}>
+                                        <span key={skillIndex} style={{ marginRight: '8px', marginBottom: '8px', display: 'inline-block', padding: '4px 10px', backgroundColor: '#e0e0e0', borderRadius: '4px', color: '#333', fontSize: '13px', fontFamily: 'var(--font-archivo)' }}>
                                             {skill}
                                         </span>
                                     ))}
@@ -317,7 +318,7 @@ export default function RoadmapTimeline({ modules }: RoadmapTimelineProps)
                     {/* Weekly Breakdown with Daily Plan - Coursera style */}
                     {module.weeklyBreakdown && module.weeklyBreakdown.length > 0 && (
                         <div style={{ marginTop: '15px' }}>
-                            <p style={{ color: '#444', fontWeight: 'bold', marginBottom: '10px' }}>📅 Week-by-Week Study Plan:</p>
+                            <p style={{ color: '#444', fontWeight: 'bold', marginBottom: '10px', fontFamily: 'var(--font-archivo)' }}>📅 Week-by-Week Study Plan:</p>
                             {(() => {
                                 let moduleDayCounter = 0; // Track continuous day numbers within this module
 
@@ -327,13 +328,13 @@ export default function RoadmapTimeline({ modules }: RoadmapTimelineProps)
                                         <div key={weekIndex} style={{
                                             marginBottom: '16px',
                                             padding: '14px',
-                                            backgroundColor: '#f0f7ff',
+                                            background: 'linear-gradient(135deg, #e3f2fd, #f0f7ff)',
                                             border: '2px solid #4CAF50',
                                             borderRadius: '8px'
                                         }}>
                                             <div style={{ marginBottom: '12px' }}>
-                                                <strong style={{ color: '#2e7d32', fontSize: '16px' }}>Week {globalWeekCounter}</strong>
-                                                <p style={{ color: '#555', fontSize: '14px', margin: '6px 0', fontStyle: 'italic' }}>
+                                                <strong style={{ color: '#2e7d32', fontSize: '16px', fontFamily: 'var(--font-archivo)' }}>Week {globalWeekCounter}</strong>
+                                                <p style={{ color: '#555', fontSize: '14px', margin: '6px 0', fontStyle: 'italic', fontFamily: 'var(--font-archivo)' }}>
                                                     🎯 {week.weeklyGoal}
                                                 </p>
                                             </div>
@@ -348,26 +349,27 @@ export default function RoadmapTimeline({ modules }: RoadmapTimelineProps)
                                                             <div key={dayIndex} style={{
                                                                 marginBottom: '10px',
                                                                 padding: '12px',
-                                                                backgroundColor: 'white',
-                                                                borderLeft: '3px solid #2196F3',
-                                                                borderRadius: '4px'
+                                                                background: 'linear-gradient(to right, #ffffff, #fafafa)',
+                                                                borderLeft: '4px solid #2196F3',
+                                                                borderRadius: '4px',
+                                                                boxShadow: '0 1px 3px rgba(0,0,0,0.08)'
                                                             }}>
                                                                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
                                                                     <div style={{ flex: 1 }}>
-                                                                        <strong style={{ color: '#1976d2', fontSize: '14px' }}>Day {moduleDayCounter}: {day.topic}</strong>
+                                                                        <strong style={{ color: '#1976d2', fontSize: '14px', fontFamily: 'var(--font-archivo)' }}>Day {moduleDayCounter}: {day.topic}</strong>
                                                                         {dueDate && (
-                                                                            <div style={{ fontSize: '11px', color: '#888', marginTop: '2px' }}>
+                                                                            <div style={{ fontSize: '11px', color: '#888', marginTop: '2px', fontFamily: 'var(--font-archivo)' }}>
                                                                                 📅 Due: {dueDate}
                                                                             </div>
                                                                         )}
                                                                     </div>
-                                                                    <span style={{ fontSize: '11px', color: '#666', backgroundColor: '#e3f2fd', padding: '2px 8px', borderRadius: '10px', marginLeft: '10px' }}>
+                                                                    <span style={{ fontSize: '11px', color: '#666', backgroundColor: '#e3f2fd', padding: '2px 8px', borderRadius: '10px', marginLeft: '10px', fontFamily: 'var(--font-archivo)' }}>
                                                                         {day.estimatedHours}
                                                                     </span>
                                                                 </div>
                                                                 <ul style={{ margin: '6px 0', paddingLeft: '20px' }}>
                                                                     {day.tasks.map((task: string, taskIndex: number) => (
-                                                                        <li key={taskIndex} style={{ color: '#444', fontSize: '13px', marginBottom: '2px' }}>
+                                                                        <li key={taskIndex} style={{ color: '#444', fontSize: '13px', marginBottom: '2px', fontFamily: 'var(--font-archivo)' }}>
                                                                             {task}
                                                                         </li>
                                                                     ))}
@@ -386,8 +388,8 @@ export default function RoadmapTimeline({ modules }: RoadmapTimelineProps)
 
                     {module.resources && module.resources.length > 0 && (
                         <div style={{ marginTop: '10px' }}>
-                            <p style={{ color: '#444' }}><strong>Resources:</strong></p>
-                            <ul style={{ color: '#444' }}>
+                            <p style={{ color: '#444', fontFamily: 'var(--font-archivo)' }}><strong>Resources:</strong></p>
+                            <ul style={{ color: '#444', fontFamily: 'var(--font-archivo)' }}>
                                 {module.resources.map((resource: string, resourceIndex: number) => (
                                     <li key={resourceIndex}>{resource}</li>
                                 ))}

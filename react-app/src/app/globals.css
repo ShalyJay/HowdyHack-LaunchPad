@@ -34,9 +34,9 @@
   --text-muted: #8a847a;
 
   /* RGBA variants for transparency effects */
-  --purple-light-rgb: 155, 139, 180;
-  --purple-main-rgb: 107, 91, 149;
-  --purple-dark-rgb: 74, 64, 99;
+  --purple-light-rgb: 222, 148, 79;
+  --purple-main-rgb: 204, 108, 19;
+  --purple-dark-rgb: 163, 79, 0;
   --pink-light-rgb: 201, 152, 152;
   --pink-main-rgb: 176, 125, 125;
   --pink-dark-rgb: 139, 94, 94;
