@@ -15,9 +15,25 @@ export default function Form() {
 
     // resume upload
     const handleResumeUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-        if (e.target.files && e.target.files[0]) {
-            setResume(e.target.files[0]);
+        const file = e.target.files?.[0];
+        if(!file) return;
+
+
+        //check if resume file is pdf
+        if (file.type !== "application/pdf") {
+            alert("Please upload a PDF file.");
+            return;
         }
+
+        setResume(file);
+
+        // Convert to base64 for API
+        const reader = new FileReader();
+        reader.onloadend = () => {
+            const base64String = reader.result?.toString().split(",")[1];
+            setFileData(base64String || null);
+        };
+        reader.readAsDataURL(file);
     };
 
     // entire form submission
