@@ -53,9 +53,23 @@ export default function Form() {
 
         try {
             // Base prompt for Gemini
-            let prompt = `Analyze the resume and skills provided. Create a learning 
-            roadmap to help achieve the job requirements. List main skills and experience, 
-            identify gaps, and suggest a step-by-step learning path.`;
+            let prompt = `Analyze the resume and skills provided. Create a learning roadmap 
+            to help achieve the job requirements.
+
+            Return your response as valid JSON in this exact format:
+            {
+                "modules": [
+                {
+                    "title": "Module name",
+                    "duration": "estimated time (e.g., 2 weeks)",
+                    "skills": ["skill1", "skill2"],
+                    "description": "What you'll learn in this module",
+                    "resources": ["resource1", "resource2"]
+                }
+                ]
+            }
+
+            Identify skill gaps and create 4-6 learning modules in a logical progression order.`;
         
 
             // Add job requirements to prompt if provided
