@@ -12,6 +12,7 @@ export default function Form() {
     const [skills, setSkills] = useState("");                       //skills text input
     const [jobUrls, setJobUrls] = useState<string[]>(["", "", "", "", ""]); //up to 5 job URLs
     const [visibleUrlInputs, setVisibleUrlInputs] = useState<number>(1); // Track how many URL inputs to show
+    const [timeFrame, setTimeFrame] = useState<string>("3 months"); //time frame for roadmap
     const [response, setResponse] = useState("");                   //Gemini API response
     const [modules, setModules] = useState<any[]>([]);              //Parsed roadmap
     const [loading, setLoading] = useState(false);                  //loading state while API
@@ -139,6 +140,7 @@ export default function Form() {
 
             STEP 5: CREATE PRIORITIZED ROADMAP (MAX 7 TECHNOLOGIES)
             CRITICAL RULE: Include a MAXIMUM of 7 technologies in the roadmap.
+            TIME CONSTRAINT: The user wants to complete this roadmap in ${timeFrame}. Structure the learning plan to be achievable within this timeframe.
 
             Priority order:
             1. Include ALL CRITICAL technologies (appearing in all jobs) - these are non-negotiable
@@ -188,12 +190,14 @@ export default function Form() {
 
             CRITICAL REQUIREMENTS:
             - MAXIMUM 7 MODULES - Be selective! Choose the most industry-relevant technologies
+            - TIME FRAME: ${timeFrame} - Ensure the total learning plan is achievable in this time. Adjust module durations accordingly.
             - If jobs are TOO DIFFERENT (unrelated career paths), set "similarJobs": false and mention this in jobSummary
             - ONLY create modules for technologies in "missingSkills"
             - Each module focuses on ONE specific technology
             - Include "priority" field in each module (critical/high/medium/low)
             - Start with CRITICAL priority modules first, then HIGH, then MEDIUM
-            - Provide 3+ FREE resources per module`;
+            - Provide 3+ FREE resources per module
+            - Set realistic "duration" for each module based on the ${timeFrame} constraint`;
 
             // Job URLs will be handled by the API - just mention them in the prompt
             prompt += `\n\nYou will receive scraped content from ${filledUrls.length} job posting(s). Analyze ALL of them to find common patterns and important technologies.`;
@@ -364,8 +368,24 @@ export default function Form() {
                             value={skills}
                             onChange={(e) => setSkills(e.target.value)}
                             placeholder="e.g., JavaScript, React, Python..."
-                            className="w-full p-3 border rounded h-32"
+                            className="w-full p-3 border rounded h-20"
                         />
+                    </div>
+
+                    <div>
+                        <label className="block mb-2">Time Frame</label>
+                        <select
+                            value={timeFrame}
+                            onChange={(e) => setTimeFrame(e.target.value)}
+                            className="w-full p-3 border rounded"
+                        >
+                            <option value="1 month">1 month</option>
+                            <option value="2 months">2 months</option>
+                            <option value="3 months">3 months</option>
+                            <option value="6 months">6 months</option>
+                            <option value="1 year">1 year</option>
+                            <option value="2 years">2 years</option>
+                        </select>
                     </div>
 
                     <div>
