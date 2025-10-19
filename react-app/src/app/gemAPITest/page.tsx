@@ -2,8 +2,8 @@
 import { useState } from "react";
 
 export default function Home() {
-  const [prompt, setPrompt] = useState("Summarize the resume and list main skills and experience.");
   const [fileData, setFileData] = useState<string | null>(null);
+  const [skills, setSkills] = useState("");
   const [response, setResponse] = useState("");
   const [loading, setLoading] = useState(false);
   const [fileName, setFileName] = useState("");
@@ -28,8 +28,10 @@ export default function Home() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!fileData) {
-      alert("Please upload a PDF first!");
+
+    // Require at least one input (PDF or skills)
+    if (!fileData && !skills.trim()) {
+      alert("Please upload a PDF or enter skills (or both)!");
       return;
     }
 
@@ -37,10 +39,19 @@ export default function Home() {
     setResponse("");
 
     try {
-      const res = await fetch("/api/gemini", {
+      // OLD VERSION (requires @google/generative-ai package):
+      /* const res = await fetch("/api/gemini", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ prompt, fileData, skills }),
+      });*/
+
+      // NEW VERSION (REST API - no package needed):
+      const prompt = "Analyze the resume and skills provided. List main skills and experience.";
+      const res = await fetch("/api/gemini-rest", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ prompt, fileData }),
+        body: JSON.stringify({ prompt, fileData, skills }),
       });
 
       const data = await res.json();
@@ -58,24 +69,33 @@ export default function Home() {
       <h1 className="text-3xl font-bold mb-6 text-gray-800">Gemini PDF Analyzer</h1>
 
       <form onSubmit={handleSubmit} className="flex flex-col gap-4 w-full max-w-md">
-        <textarea
-          value={prompt}
-          onChange={(e) => setPrompt(e.target.value)}
-          placeholder="What do you want Gemini to do with the PDF?"
-          className="p-3 border border-gray-300 rounded-lg"
-          rows={3}
-        />
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Upload Resume (PDF) - Optional
+          </label>
+          <input
+            type="file"
+            accept="application/pdf"
+            onChange={handleFileUpload}
+            className="block w-full text-sm text-gray-600 file:mr-4 file:py-2 file:px-4 file:border-0 file:text-sm file:bg-blue-100 file:text-blue-700 hover:file:bg-blue-200"
+          />
+          {fileName && (
+            <p className="text-gray-700 text-sm mt-1">Uploaded: {fileName}</p>
+          )}
+        </div>
 
-        <input
-          type="file"
-          accept="application/pdf"
-          onChange={handleFileUpload}
-          className="block text-sm text-gray-600 file:mr-4 file:py-2 file:px-4 file:border-0 file:text-sm file:bg-blue-100 file:text-blue-700 hover:file:bg-blue-200"
-        />
-
-        {fileName && (
-          <p className="text-gray-700 text-sm">Uploaded: {fileName}</p>
-        )}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Enter Skills - Optional
+          </label>
+          <textarea
+            value={skills}
+            onChange={(e) => setSkills(e.target.value)}
+            placeholder="e.g., Python, JavaScript, React, Machine Learning..."
+            className="p-3 border border-gray-300 rounded-lg w-full"
+            rows={3}
+          />
+        </div>
 
         <button
           type="submit"
